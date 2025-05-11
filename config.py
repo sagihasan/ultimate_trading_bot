@@ -1,30 +1,31 @@
+# config.py – הגדרות כלליות לבוט כולל משתנים סביבתיים, סיכון, מניות, APIים והגנות
+
 import os
 import requests
 import time
+from dotenv import load_dotenv
 
-# מניות למעקב
+load_dotenv()
+
+# רשימת מניות לסריקה
 STOCK_LIST = [
-    'PLTR', 'AMZN', 'NVDA', 'AAPL', 'TSLA', 'ANET', 'SNEX', 'CRGY',
-    'MSFT', 'GOOG', 'AMD', 'ADBE', 'META', 'AI', 'AR', 'ALSN', 'ASGN',
-    'HIMS', 'ASTS', 'HOOD', 'DKNG', 'SOUN', 'APP', 'PZZA', 'AVGO', 'SMCI',
-    'ADI', 'SEDG', 'ARKK', 'PERI', 'NU', 'ACHC', 'SMMT', 'ZIM', 'GRPN',
-    'RKT', 'EBAY', 'CVNA', 'XBI', 'PANW', 'NFLX', 'ABNB', 'BIDU', 'COIN',
-    'CRWD', 'DDOG', 'DOCU', 'ETSY', 'FSLY', 'GDRX', 'GME', 'IQ', 'JD',
-    'LI', 'MELI', 'MGNI', 'MOMO', 'MRNA', 'NET', 'NIO', 'OKTA', 'PDD',
-    'PINS', 'PTON', 'QCOM', 'ROKU', 'SHOP', 'SNAP', 'SQ', 'TAL', 'TDOC',
-    'TME', 'TWLO', 'U', 'UBER', 'VIPS', 'WBA', 'WISH', 'WKHS', 'ZM',
-    'BABA', 'CSIQ', 'DKS', 'EA', 'ENPH', 'F', 'GM', 'GS', 'INTC', 'JNJ',
-    'KO', 'LMT', 'LOW', 'LULU', 'MCD', 'MRK', 'MS', 'NFLX', 'NVAX',
-    'ORCL', 'PEP', 'PYPL', 'SBUX', 'SJM', 'T', 'TSN', 'UNH', 'V', 'VZ',
-    'WMT', 'XOM', 'BB', 'CLSK', 'RIOT', 'MARA', 'BTBT', 'HUT', 'BITF',
-    'CANO', 'SOFI', 'RIVN', 'LCID', 'AFRM', 'UPST', 'BMBL', 'MTCH', 'CRSP'
+    'PLTR', 'AMZN', 'NVDA', 'AAPL', 'TSLA', 'ANET', 'SNEX', 'CRGY', 'MSFT', 'GOOG',
+    'AMD', 'ADBE', 'META', 'AI', 'AR', 'ALSN', 'ASGN', 'HIMS', 'ASTS', 'HOOD', 'DKNG', 'SOUN',
+    'APP', 'PZZA', 'AVGO', 'SMCI', 'ADI', 'SEDG', 'ARKK', 'PERI', 'NU', 'ACHC', 'SMMT', 'ZIM',
+    'GRPN', 'RKT', 'EBAY', 'CVNA', 'XBI', 'PANW', 'NFLX', 'ABNB', 'BIDU', 'COIN', 'CRWD', 'DDOG',
+    'DOCU', 'ETSY', 'FSLY', 'GDRX', 'GME', 'IQ', 'JD', 'LI', 'MELI', 'MGNI', 'MOMO', 'MRNA', 'NET',
+    'NIO', 'OKTA', 'PDD', 'PINS', 'PTON', 'QCOM', 'ROKU', 'SHOP', 'SNAP', 'SQ', 'TAL', 'TDOC', 'TME',
+    'TWLO', 'U', 'UBER', 'VIPS', 'WBA', 'WISH', 'WKHS', 'ZM', 'BABA', 'CSIQ', 'DKS', 'EA', 'ENPH',
+    'F', 'GM', 'GS', 'INTC', 'JNJ', 'KO', 'LMT', 'LOW', 'LULU', 'MCD', 'MRK', 'MS', 'NVAX', 'ORCL',
+    'PEP', 'PYPL', 'SBUX', 'SJM', 'T', 'TSN', 'UNH', 'V', 'VZ', 'WMT', 'XOM', 'BB', 'CLSK', 'RIOT',
+    'MARA', 'BTBT', 'HUT', 'BITF', 'CANO', 'SOFI', 'RIVN', 'LCID', 'AFRM', 'UPST', 'BMBL', 'MTCH', 'CRSP'
 ]
 
-# ניהול סיכונים מתוך .env
+# משתני סיכון וניהול עסקה
 ACCOUNT_SIZE = float(os.getenv("ACCOUNT_SIZE", 951))
 RISK_PERCENTAGE = float(os.getenv("RISK_PERCENTAGE", 0.02))
 STOP_LOSS_PERCENT = float(os.getenv("STOP_LOSS_PERCENT", 0.03))
-TAKE_PROFIT_PERCENT = float(os.getenv("TAKE_PROFIT_PERCENT", 0.05))
+TAKE_PROFIT_PERCENT = float(os.getenv("TAKE_PROFIT_PERCENT", 0.06))
 
 # Webhooks
 DISCORD_PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK")
@@ -35,7 +36,8 @@ DISCORD_ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK")
 ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-# פונקציית הגנה לשגיאות 429
+# פונקציית הגנה משגיאת 429
+
 def safe_get(url, headers=None, params=None, retries=3, delay=15):
     for attempt in range(retries):
         try:
@@ -52,3 +54,4 @@ def safe_get(url, headers=None, params=None, retries=3, delay=15):
             print(f"שגיאה בבקשה: {e}")
             time.sleep(delay)
     return None
+
