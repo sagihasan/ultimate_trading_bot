@@ -6,6 +6,5 @@ requests
 python-dotenv
 exchange_calendars
 scipy
-talib
 openpyxl
 ta
