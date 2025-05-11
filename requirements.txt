@@ -1,7 +1,6 @@
 requests
 python-dotenv
 yfinance
-exchange_calendars
 pandas
 numpy
-pandas_ta
+ta
