@@ -1,52 +1,91 @@
+# technicals.py – ניתוח טכני מתקדם עם 4 אינדיקטורים חובה, נרות היפוך, מגמות, ציון, פסגות/תחתיות ודגלים
+
 import yfinance as yf
-import ta
+import pandas as pd
+import talib
+from config import STOCK_LIST
 
-STOCK_LIST = [
-    'PLTR', 'AMZN', 'NVDA', 'AAPL', 'TSLA', 'ANET', 'SNEX', 'CRGY',
-    'MSFT', 'GOOG', 'AMD', 'ADBE', 'META', 'AI', 'AR', 'ALSN', 'ASGN',
-    'HIMS', 'ASTS', 'HOOD', 'DKNG', 'SOUN', 'APP', 'PZZA', 'AVGO', 'SMCI',
-    'ADI', 'SEDG', 'ARKK', 'PERI', 'NU', 'ACHC', 'SMMT', 'ZIM', 'GRPN',
-    'RKT', 'EBAY', 'CVNA', 'XBI', 'PANW', 'NFLX', 'ABNB', 'BIDU', 'COIN',
-    'CRWD', 'DDOG', 'DOCU', 'ETSY', 'FSLY', 'GDRX', 'GME', 'IQ', 'JD',
-    'LI', 'MELI', 'MGNI', 'MOMO', 'MRNA', 'NET', 'NIO', 'OKTA', 'PDD',
-    'PINS', 'PTON', 'QCOM', 'ROKU', 'SHOP', 'SNAP', 'SQ', 'TAL', 'TDOC',
-    'TME', 'TWLO', 'U', 'UBER', 'VIPS', 'WBA', 'WISH', 'WKHS', 'ZM',
-    'BABA', 'CSIQ', 'DKS', 'EA', 'ENPH', 'F', 'GM', 'GS', 'INTC', 'JNJ',
-    'KO', 'LMT', 'LOW', 'LULU', 'MCD', 'MRK', 'MS', 'NVAX',
-    'ORCL', 'PEP', 'PYPL', 'SBUX', 'SJM', 'T', 'TSN', 'UNH', 'V', 'VZ',
-    'WMT', 'XOM', 'BB', 'CLSK', 'RIOT', 'MARA', 'BTBT', 'HUT', 'BITF',
-    'CANO', 'SOFI', 'RIVN', 'LCID', 'AFRM', 'UPST', 'BMBL', 'MTCH', 'CRSP'
-]
+# זיהוי נר היפוך פשוט (Hammer / Shooting Star)
+def detect_reversal_candle(df):
+    last = df.iloc[-1]
+    body = abs(last['Close'] - last['Open'])
+    range_ = last['High'] - last['Low']
+    upper_shadow = last['High'] - max(last['Close'], last['Open'])
+    lower_shadow = min(last['Close'], last['Open']) - last['Low']
 
-def fetch_data(symbol, period, interval):
-    return yf.download(symbol, period=period, interval=interval)
-
-def detect_trend(df):
-    ema9 = ta.trend.ema_indicator(df['Close'], window=9).ema_indicator()
-    ema20 = ta.trend.ema_indicator(df['Close'], window=20).ema_indicator()
-    return "מגמת עלייה" if ema9.iloc[-1] > ema20.iloc[-1] else "מגמת ירידה"
-
-def analyze_stock(symbol):
-    daily = fetch_data(symbol, "6mo", "1d")
-    weekly = fetch_data(symbol, "2y", "1wk")
-    monthly = fetch_data(symbol, "10y", "1mo")
-
-    if daily.empty or weekly.empty or monthly.empty:
+    if lower_shadow > 2 * body and upper_shadow < body:
+        return "Hammer"
+    elif upper_shadow > 2 * body and lower_shadow < body:
+        return "Shooting Star"
+    else:
         return None
 
-    return {
-        "symbol": symbol,
-        "price": daily["Close"].iloc[-1],
-        "trend_daily": detect_trend(daily),
-        "trend_weekly": detect_trend(weekly),
-        "trend_monthly": detect_trend(monthly)
-    }
+# קביעת מגמה לפי ממוצעים נעים אקספוננציאליים (EMA)
+def determine_trend(df):
+    ema50 = df['Close'].ewm(span=50, adjust=False).mean()
+    ema200 = df['Close'].ewm(span=200, adjust=False).mean()
+    if ema50.iloc[-1] > ema200.iloc[-1]:
+        return "מגמת עלייה"
+    elif ema50.iloc[-1] < ema200.iloc[-1]:
+        return "מגמת ירידה"
+    else:
+        return "ניטרלי"
 
-def run_technical_analysis():
+# זיהוי פסגות ותחתיות היפוך
+def detect_peaks_valleys(df):
+    from scipy.signal import find_peaks
+    peaks, _ = find_peaks(df['Close'], distance=5)
+    valleys, _ = find_peaks(-df['Close'], distance=5)
+    return len(peaks) > 0 and len(valleys) > 0
+
+# זיהוי תבניות דגל/משולש (פשוט, באמצעות תנודתיות קצרה וצפופה)
+def detect_flag_or_triangle(df):
+    recent = df['Close'].iloc[-10:]
+    volatility = recent.max() - recent.min()
+    avg_range = df['Close'].diff().abs().tail(10).mean()
+    if volatility < 2 * avg_range:
+        return True
+    return False
+
+# הפונקציה הראשית שמחזירה ניתוח טכני חכם
+
+def run_technical_analysis(symbols):
     results = []
-    for symbol in STOCK_LIST:
-        print(f"Analyzing {symbol}...")
-        result = analyze_stock(symbol)
-        if result:
-            results.append(result)
+    for symbol in symbols:
+        try:
+            df = yf.download(symbol, period="6mo", interval="1d")
+            df.dropna(inplace=True)
+
+            rsi = talib.RSI(df['Close'], timeperiod=14)
+            macd, macdsignal, macdhist = talib.MACD(df['Close'])
+            ema20 = df['Close'].ewm(span=20, adjust=False).mean()
+            ema50 = df['Close'].ewm(span=50, adjust=False).mean()
+
+            conditions = {
+                "RSI מעל 50": rsi.iloc[-1] > 50,
+                "MACD מעל קו אות": macd.iloc[-1] > macdsignal.iloc[-1],
+                "EMA20 מעל EMA50": ema20.iloc[-1] > ema50.iloc[-1],
+                "מגמת עלייה": determine_trend(df) == "מגמת עלייה"
+            }
+            true_count = sum(conditions.values())
+            score = round((true_count / len(conditions)) * 100)
+
+            candle = detect_reversal_candle(df)
+            reversal_zones = detect_peaks_valleys(df)
+            pattern_flag = detect_flag_or_triangle(df)
+
+            results.append({
+                "symbol": symbol,
+                "price": df['Close'].iloc[-1],
+                "trend_daily": determine_trend(df),
+                "trend_weekly": determine_trend(df[-5*4:]),
+                "trend_monthly": determine_trend(df[-21*6:]),
+                "candle_reversal": candle,
+                "reversal_zone": reversal_zones,
+                "pattern_flag_or_triangle": pattern_flag,
+                "score": score,
+                "conditions": conditions
+            })
+        except Exception as e:
+            results.append({"symbol": symbol, "error": str(e)})
     return results
