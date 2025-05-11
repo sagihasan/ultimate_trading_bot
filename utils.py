@@ -1,4 +1,4 @@
-# utils.py – פונקציות עזר, שליחת דיסקורד, חישובי מיסוי, גרפים, דוחות PDF
+# utils.py – שליחת דיסקורד, שמירת קבצים, חישובי מיסים, גרפים, PDF
 
 import os
 import requests
@@ -6,17 +6,33 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 from datetime import datetime
+import time
 
-# שליחת הודעה לדיסקורד
-def send_discord_message(webhook_url, message):
+# זיכרון שליחה לפי webhook + סוג הודעה
+last_sent_times = {}
+
+# שליחת הודעה לדיסקורד עם מניעת עומס
+
+def send_discord_message(webhook_url, message, message_type="default"):
     try:
+        key = f"{webhook_url}_{message_type}"
+        now = time.time()
+
+        # בודק אם עברו 15 שניות מאז השליחה האחרונה מאותו סוג
+        if key in last_sent_times and now - last_sent_times[key] < 15:
+            print(f"נמנעה שליחה ({message_type}) כדי למנוע עומס (429).")
+            return
+
         data = {"content": message}
         response = requests.post(webhook_url, json=data)
         response.raise_for_status()
+        last_sent_times[key] = now
+
     except Exception as e:
-        print(f"שגיאה בשליחת הודעה לדיסקורד: {e}")
+        print(f"שגיאה בשליחה לדיסקורד ({message_type}): {e}")
 
 # שליפה בטוחה ממילון מקונן
+
 def safe_get(d, *keys):
     for key in keys:
         if isinstance(d, dict) and key in d:
@@ -25,7 +41,7 @@ def safe_get(d, *keys):
             return None
     return d
 
-# שמירת קובץ אקסל
+# שמירה לקובץ אקסל
 
 def save_to_excel(data, filename):
     df = pd.DataFrame(data)
@@ -37,14 +53,14 @@ def create_return_chart(returns, filename="cumulative_return.png"):
     plt.figure(figsize=(10, 5))
     plt.plot(returns, marker='o')
     plt.title("גרף תשואה מצטברת")
-    plt.xlabel("תאריכים")
+    plt.xlabel("תאריך")
     plt.ylabel("תשואה מצטברת (%)")
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(filename)
     plt.close()
 
-# יצירת PDF מסכם
+# יצירת דוח PDF
 
 def create_pdf_report(summary_text, filename="report.pdf"):
     pdf = FPDF()
@@ -54,7 +70,7 @@ def create_pdf_report(summary_text, filename="report.pdf"):
         pdf.cell(200, 10, txt=line, ln=True, align='L')
     pdf.output(filename)
 
-# חישוב מיסוי ומגן מס
+# חישוב מס ומגן מס
 
 def calculate_tax(total_profit, tax_rate=0.25, tax_shield=0):
     tax_due = max((total_profit * tax_rate) - tax_shield, 0)
