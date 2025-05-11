@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
 from dotenv import load_dotenv
-
+from keep_alive import keep_alive
+keep_alive()
 from utils import send_discord_message
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
