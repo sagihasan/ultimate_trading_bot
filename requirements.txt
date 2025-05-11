@@ -4,3 +4,4 @@ yfinance
 exchange_calendars
 pandas
 numpy
+pandas_ta
