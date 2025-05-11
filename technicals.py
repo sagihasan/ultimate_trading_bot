@@ -1,4 +1,4 @@
-# technicals.py – ניתוח טכני מתקדם עם 4 אינדיקטורים חובה, נרות היפוך, מגמות, ציון, פסגות/תחתיות ודגלים
+# technicals.py – ניתוח טכני מתקדם עם אינדיקטורים חובה, נרות היפוך, מגמות, ATR, EMA9, מינוף, תבניות וציון כללי
 
 import yfinance as yf
 import pandas as pd
@@ -38,7 +38,8 @@ def detect_peaks_valleys(df):
     valleys, _ = find_peaks(-df['Close'], distance=5)
     return len(peaks) > 0 and len(valleys) > 0
 
-# זיהוי תבניות דגל/משולש (פשוט, באמצעות תנודתיות קצרה וצפופה)
+# זיהוי תבניות דגל/משולש
+
 def detect_flag_or_triangle(df):
     recent = df['Close'].iloc[-10:]
     volatility = recent.max() - recent.min()
@@ -56,15 +57,24 @@ def run_technical_analysis(symbols):
             df = yf.download(symbol, period="6mo", interval="1d")
             df.dropna(inplace=True)
 
-            rsi = talib.RSI(df['Close'], timeperiod=14)
-            macd, macdsignal, macdhist = talib.MACD(df['Close'])
+            rsi = ta.momentum.RSIIndicator(df['Close']).rsi()
+            macd = ta.trend.MACD(df['Close'])
+            macd_line = macd.macd()
+            macd_signal = macd.macd_signal()
+
+            ema9 = df['Close'].ewm(span=9, adjust=False).mean()
             ema20 = df['Close'].ewm(span=20, adjust=False).mean()
             ema50 = df['Close'].ewm(span=50, adjust=False).mean()
 
+            atr = ta.volatility.AverageTrueRange(df['High'], df['Low'], df['Close']).average_true_range()
+            atr_last = atr.iloc[-1] if not atr.empty else 0
+
             conditions = {
                 "RSI מעל 50": rsi.iloc[-1] > 50,
-                "MACD מעל קו אות": macd.iloc[-1] > macdsignal.iloc[-1],
+                "MACD מעל קו אות": macd_line.iloc[-1] > macd_signal.iloc[-1],
+                "EMA9 מעל EMA20": ema9.iloc[-1] > ema20.iloc[-1],
                 "EMA20 מעל EMA50": ema20.iloc[-1] > ema50.iloc[-1],
+                "ATR נמוך מדי למנף": atr_last < df['Close'].iloc[-1] * 0.05,  # תנודתיות מתונה
                 "מגמת עלייה": determine_trend(df) == "מגמת עלייה"
             }
             true_count = sum(conditions.values())
@@ -84,8 +94,10 @@ def run_technical_analysis(symbols):
                 "reversal_zone": reversal_zones,
                 "pattern_flag_or_triangle": pattern_flag,
                 "score": score,
+                "atr": atr_last,
                 "conditions": conditions
             })
         except Exception as e:
             results.append({"symbol": symbol, "error": str(e)})
     return results
+
