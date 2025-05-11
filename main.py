@@ -3,6 +3,7 @@
 import os
 import time
 from datetime import datetime, timedelta
+from macro import send_macro_summary
 import pytz
 import exchange_calendars as ec
 from dotenv import load_dotenv
