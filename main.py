@@ -1,131 +1,101 @@
 import os
 import time
 from datetime import datetime, timedelta
+import pytz
+import exchange_calendars as ec
 from dotenv import load_dotenv
 from utils import send_discord_message
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
 from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT
-import exchange_calendars as ec
-
-# טען את ה-Webhookים מהסביבה
-private_webhook = os.getenv('DISCORD_PRIVATE_WEBHOOK')
-public_webhook = os.getenv('DISCORD_PUBLIC_WEBHOOK')
-error_webhook = os.getenv('DISCORD_ERROR_WEBHOOK')
 
 load_dotenv()
 
-# הגדר את הבורסה של NYSE
-nyse = ec.get_calendar("XNYS")
+def is_half_day(nyse_calendar, date):
+    schedule = nyse_calendar.schedule.loc[date:date]
+    if not schedule.empty:
+        open_time = schedule.iloc[0]['market_open']
+        close_time = schedule.iloc[0]['market_close']
+        return (close_time - open_time).seconds < 6.5 * 3600
+    return False
 
-def get_market_info(date):
-    session = nyse.sessions_in_range(date, date)
-    if not session.empty:
-        if nyse.is_session(date):
-            close_time = nyse.session_close(date).tz_convert('Israel')
-            open_time = nyse.session_open(date).tz_convert('Israel')
-            duration = (close_time - open_time).total_seconds() / 3600
-            if duration < 6:  # חצי יום
-                return "half_day", close_time
-            else:
-                return "full_day", close_time
-    else:
-        holiday = nyse.holidays().holidays
-        reason = None
-        if date in holiday:
-            reason = "חג רשמי בארה״ב"
-        else:
-            reason = "יום לא מסחר"
-        return "no_trading", reason
+def get_current_market_day(nyse):
+    now = datetime.now(pytz.timezone("America/New_York")).date()
+    return nyse.valid_days(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1)).date[-1]
 
-def is_dst_gap():
-    today = datetime.now()
-    march = datetime(today.year, 3, 8)
-    november = datetime(today.year, 11, 1)
-    dst_start = march + timedelta(days=(6 - march.weekday()))
-    dst_end = november + timedelta(days=(6 - november.weekday()))
-    return dst_start <= today <= dst_end
+def is_dst_gap_period():
+    today = datetime.now().date()
+    dst_us = datetime(datetime.now().year, 3, 10)  # בערך מרץ
+    dst_il = datetime(datetime.now().year, 3, 29)  # בערך סוף מרץ
+    return dst_il > dst_us and dst_us <= today <= dst_il
 
-def main_trading_bot():
+def main():
     try:
-        print("הבוט התחיל לפעול ✅")
+        nyse = ec.get_calendar("XNYS")
+        today = datetime.now(pytz.timezone("America/New_York")).date()
+        market_day = get_current_market_day(nyse)
+
+        if today != market_day:
+            send_discord_message(os.getenv("DISCORD_PUBLIC_WEBHOOK"), "אין מסחר היום לפי לוח השנה של NYSE.")
+            return
+
+        half_day = is_half_day(nyse, today)
+        is_gap = is_dst_gap_period()
+
+        # זיהוי שעת סיום מסחר לפי סוג היום
+        if half_day:
+            close_time = datetime.combine(today, datetime.strptime("13:00", "%H:%M").time())
+            signal_time = (close_time - timedelta(minutes=20)).strftime("%H:%M")
+        elif is_gap:
+            signal_time = "21:40"
+        else:
+            signal_time = "22:40"
+
+        print(f"הבוט מאזין לאיתות בשעה: {signal_time}")
 
         while True:
-            now = datetime.now()
-            current_time = now.strftime('%H:%M')
-            today_date = now.normalize()
+            now = datetime.now(pytz.timezone("Asia/Jerusalem")).strftime("%H:%M")
+            if now == signal_time:
+                fundamentals = analyze_fundamentals()
+                technicals = run_technical_analysis()
 
-            # פתיחה - 11:00
-            if current_time == '11:00':
-                send_discord_message(private_webhook, "🤖 הבוט התחיל לפעול ✅")
-                send_discord_message(private_webhook, "📢 תזכורת: שבוע חדש – תעיין בכל העדכונים בערוץ הציבורי!")
-                time.sleep(60)
+                for result in technicals:
+                    if result["trend_daily"] == result["trend_weekly"]:
+                        trend = result["trend_daily"]
+                        price = result["price"]
+                        sl = price * (1 - STOP_LOSS_PERCENT) if trend == "מגמת עלייה" else price * (1 + STOP_LOSS_PERCENT)
+                        tp = price * (1 + TAKE_PROFIT_PERCENT) if trend == "מגמת עלייה" else price * (1 - TAKE_PROFIT_PERCENT)
+                        risk = ACCOUNT_SIZE * RISK_PERCENTAGE
+                        qty = int(risk / abs(price - sl)) if price != sl else 0
 
-            # סגירה - 02:10
-            if current_time == '02:10':
-                send_discord_message(private_webhook, "🤖 הבוט סיים לפעול 🛑")
-                time.sleep(60)
+                        msg = (
+                            f"איתות חדש ({'לונג' if trend == 'מגמת עלייה' else 'שורט'}):\n"
+                            f"מניה: {result['symbol']}\n"
+                            f"מחיר כניסה: {price:.2f}\n"
+                            f"סטופ לוס: {sl:.2f}\n"
+                            f"טייק פרופיט: {tp:.2f}\n"
+                            f"כמות מניות: {qty}\n\n"
+                            f"מגמות:\n"
+                            f"יומי: {'לונג' if result['trend_daily'] == 'מגמת עלייה' else 'שורט'}\n"
+                            f"שבועי: {'לונג' if result['trend_weekly'] == 'מגמת עלייה' else 'שורט'}\n"
+                            f"חודשי: {'לונג' if result['trend_monthly'] == 'מגמת עלייה' else 'שורט'}\n\n"
+                            f"תחזית פונדומנטלית: {fundamentals['future_outlook']}"
+                        )
 
-            # בדיקה איזה סוג יום זה
-            market_status, info = get_market_info(today_date)
+                        if half_day:
+                            msg += "\nהערה: יום מסחר מקוצר – נפח תנודתי, היזהר."
+                        if is_gap:
+                            msg += "\nהערה: תקופת פערי שעון בין ישראל לארה"ב."
 
-            # קובע את שעת האיתות לפי סוג היום
-            signal_time = None
-            if market_status == "full_day":
-                signal_time = "21:40" if is_dst_gap() else "22:40"
-            elif market_status == "half_day":
-                close_time = info - timedelta(minutes=20)
-                signal_time = close_time.strftime('%H:%M')
-            elif market_status == "no_trading":
-                if current_time == '11:10':
-                    send_discord_message(public_webhook, f"📢 היום אין מסחר בארה\"ב ({info}) – לא יישלח איתות.")
-                    time.sleep(60)
-
-            # איתות יומי בשעה הנכונה
-            if signal_time and current_time == signal_time:
-                fundamentals_result = analyze_fundamentals()
-                technicals_result_list = run_technical_analysis()
-
-                for technicals_result in technicals_result_list:
-                    if technicals_result['MA_Cross_Long'] and technicals_result['MACD_Bullish']:
-                        price = technicals_result['price']
-                        stop_loss_price = price * (1 - STOP_LOSS_PERCENT)
-                        take_profit_price = price * (1 + TAKE_PROFIT_PERCENT)
-
-                        risk_amount = ACCOUNT_SIZE * RISK_PERCENTAGE
-                        per_share_risk = price - stop_loss_price
-                        quantity = int(risk_amount / per_share_risk) if per_share_risk > 0 else 0
-
-                        signal_message = f"""
-📈 איתות יומי:
-
-מניה: {technicals_result['symbol']}
-סוג עסקה: לונג
-מחיר כניסה: {price:.2f}
-סטופ לוס: {stop_loss_price:.2f}
-טייק פרופיט: {take_profit_price:.2f}
-כמות מניות: {quantity} מניות
-
-💰 ניהול סיכונים:
-סיכון מקסימלי לעסקה: {risk_amount:.2f}$
-סיכון פר מניה: {per_share_risk:.2f}$
-סה"כ סיכון בפועל: {(quantity * per_share_risk):.2f}$
-
-צפי עתידי של החברה: {fundamentals_result['future_outlook']}
-הבוט קובע: להיכנס לעסקה ✅
-"""
-                        send_discord_message(public_webhook, signal_message)
+                        send_discord_message(os.getenv("DISCORD_PUBLIC_WEBHOOK"), msg)
                         break
                 else:
-                    send_discord_message(public_webhook, "📉 היום אין איתות עקב שוק תנודתי או נתונים חסרים.")
-                time.sleep(60)
+                    send_discord_message(os.getenv("DISCORD_PUBLIC_WEBHOOK"), "לא נשלח איתות – לא התקיימו התנאים ביומי ובשבועי.")
 
-            time.sleep(10)
-
+                break
+            time.sleep(30)
     except Exception as e:
-        error_message = f"❌ שגיאה בבוט: {str(e)}"
-        send_discord_message(error_webhook, error_message)
-        print(error_message)
+        send_discord_message(os.getenv("DISCORD_ERROR_WEBHOOK"), f"שגיאה בבוט: {str(e)}")
 
-if __name__ == '__main__':
-    main_trading_bot()
+if __name__ == "__main__":
+    main()
