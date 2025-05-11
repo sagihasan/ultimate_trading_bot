@@ -1,6 +1,7 @@
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import pandas_ta
+import numpy as np
 
 # רשימת המניות לסריקה
 STOCK_LIST = [
