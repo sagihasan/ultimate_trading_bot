@@ -1,4 +1,4 @@
-# utils.py – שליחת הודעות, שמירת דוחות, גרפים, PDF, חישובי מס ומגן מס
+# utils.py – פונקציות עזר, שליחת דיסקורד, חישובי מיסוי, גרפים, דוחות PDF
 
 import os
 import requests
@@ -8,34 +8,43 @@ from fpdf import FPDF
 from datetime import datetime
 
 # שליחת הודעה לדיסקורד
-
 def send_discord_message(webhook_url, message):
     try:
-        payload = {"content": message}
-        requests.post(webhook_url, json=payload)
+        data = {"content": message}
+        response = requests.post(webhook_url, json=data)
+        response.raise_for_status()
     except Exception as e:
         print(f"שגיאה בשליחת הודעה לדיסקורד: {e}")
 
-# שמירת קובץ אקסל לאיתותים / דוחות
+# שליפה בטוחה ממילון מקונן
+def safe_get(d, *keys):
+    for key in keys:
+        if isinstance(d, dict) and key in d:
+            d = d[key]
+        else:
+            return None
+    return d
+
+# שמירת קובץ אקסל
 
 def save_to_excel(data, filename):
     df = pd.DataFrame(data)
     df.to_excel(filename, index=False)
 
-# יצירת גרף תשואה מצטברת ושמירתו
+# יצירת גרף תשואה מצטברת
 
 def create_return_chart(returns, filename="cumulative_return.png"):
     plt.figure(figsize=(10, 5))
     plt.plot(returns, marker='o')
     plt.title("גרף תשואה מצטברת")
-    plt.xlabel("עסקאות")
+    plt.xlabel("תאריכים")
     plt.ylabel("תשואה מצטברת (%)")
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(filename)
     plt.close()
 
-# יצירת קובץ PDF סיכום
+# יצירת PDF מסכם
 
 def create_pdf_report(summary_text, filename="report.pdf"):
     pdf = FPDF()
@@ -45,7 +54,7 @@ def create_pdf_report(summary_text, filename="report.pdf"):
         pdf.cell(200, 10, txt=line, ln=True, align='L')
     pdf.output(filename)
 
-# חישוב מס ומגן מס
+# חישוב מיסוי ומגן מס
 
 def calculate_tax(total_profit, tax_rate=0.25, tax_shield=0):
     tax_due = max((total_profit * tax_rate) - tax_shield, 0)
