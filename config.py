@@ -1,3 +1,5 @@
+import os
+
 # רשימת המניות לסריקה
 STOCK_LIST = [
     'PLTR', 'AMZN', 'NVDA', 'AAPL', 'TSLA', 'ANET', 'SNEX', 'CRGY',
