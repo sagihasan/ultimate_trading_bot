@@ -11,7 +11,7 @@ keep_alive()
 from utils import send_discord_message
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, STOCK_LIST
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK,DISCORD_PRIVATE_WEBHOOK, STOCK_LIST
 from macro import send_macro_summary
 
 load_dotenv()
