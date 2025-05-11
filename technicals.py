@@ -4,20 +4,15 @@ import pandas_ta as ta
 
 # רשימת המניות לסריקה
 STOCK_LIST = [
-    'PLTR', 'AMZN', 'NVDA', 'AAPL', 'TSLA', 'ANET', 'SNEX', 'CRGY',
-    'MSFT', 'GOOG', 'AMD', 'ADBE', 'META', 'AI', 'AR', 'ALSN', 'ASGN',
-    'HIMS', 'ASTS', 'HOOD', 'DKNG', 'SOUN', 'APP', 'PZZA', 'AVGO', 'SMCI',
-    'ADI', 'SEDG', 'ARKK', 'PERI', 'NU', 'ACHC', 'SMMT', 'ZIM', 'GRPN',
-    'RKT', 'EBAY', 'CVNA', 'XBIT', 'PANW', 'NFLX', 'ABNB', 'BIDU', 'COIN',
-    'CRWD', 'DDOG', 'DOCU', 'ETSY', 'FSLY', 'GDRX', 'GME', 'IQ', 'JD',
-    'LI', 'MELI', 'MGNI', 'MOMO', 'MRNA', 'NET', 'NIO', 'OKTA', 'PDD',
-    'PINS', 'PTON', 'QCOM', 'ROKU', 'SHOP', 'SNAP', 'SQ', 'TAL', 'TDOC',
-    'TME', 'TWLO', 'U', 'UBER', 'VIPS', 'WBA', 'WISH', 'WKHS', 'ZM',
-    'BABA', 'CSIQ', 'DKS', 'EA', 'ENPH', 'F', 'GM', 'GS', 'INTC', 'JNJ',
-    'KO', 'LMT', 'LOW', 'LULU', 'MCD', 'MRK', 'MS', 'NVAX',
-    'ORCL', 'PEP', 'PYPL', 'SBUX', 'SJM', 'T', 'TSN', 'UNH', 'V', 'VZ',
-    'WMT', 'XOM', 'BB', 'CLSK', 'RIOT', 'MARA', 'BTBT', 'HUT', 'BITF',
-    'CANO', 'SOFI', 'RIVN', 'LCID', 'AFRM', 'UPST', 'BMBL', 'MTCH', 'CRSP'
+    'PLTR', 'AMZN', 'NVDA', 'AAPL', 'TSLA', 'ANET', 'SNEX', 'CRGY', 'MSFT', 'GOOG', 'AMD', 'ADBE', 'META', 'AI', 'AR',
+    'ALSN', 'ASGN', 'HIMS', 'ASTS', 'HOOD', 'DKNG', 'SOUN', 'APP', 'PZZA', 'AVGO', 'SMCI', 'ADI', 'SEDG', 'ARKK', 'PERI',
+    'NU', 'ACHC', 'SMMT', 'ZIM', 'GRPN', 'RKT', 'EBAY', 'CVNA', 'XBIT', 'PANW', 'NFLX', 'ABNB', 'BIDU', 'COIN', 'CRWD',
+    'DDOG', 'DOCU', 'ETSY', 'FSLY', 'GDRX', 'GME', 'IQ', 'JD', 'LI', 'MELI', 'MGNI', 'MOMO', 'MRNA', 'NET', 'NIO', 'OKTA',
+    'PDD', 'PINS', 'PTON', 'QCOM', 'ROKU', 'SHOP', 'SNAP', 'SQ', 'TAL', 'TDOC', 'TME', 'TWLO', 'U', 'UBER', 'VIPS',
+    'WBA', 'WISH', 'WKHS', 'ZM', 'BABA', 'CSIQ', 'DKS', 'EA', 'ENPH', 'F', 'GM', 'GS', 'INTC', 'JNJ', 'KO', 'LMT', 'LOW',
+    'LULU', 'MCD', 'MRK', 'MS', 'NVAX', 'ORCL', 'PEP', 'PYPL', 'SBUX', 'SJM', 'T', 'TSN', 'UNH', 'V', 'VZ', 'WMT', 'XOM',
+    'BB', 'CLSK', 'RIOT', 'MARA', 'BTBT', 'HUT', 'BITF', 'CANO', 'SOFI', 'RIVN', 'LCID', 'AFRM', 'UPST', 'BMBL', 'MTCH',
+    'CRSP'
 ]
 
 def fetch_stock_data(symbol, period='6mo', interval='1d'):
@@ -29,35 +24,35 @@ def analyze_stock(symbol):
     if df.empty:
         return None
 
-    df['MA9'] = talib.SMA(df['Close'], timeperiod=9)
-    df['MA20'] = talib.SMA(df['Close'], timeperiod=20)
-    df['MA50'] = talib.SMA(df['Close'], timeperiod=50)
-    df['MA100'] = talib.SMA(df['Close'], timeperiod=100)
-    df['MA200'] = talib.SMA(df['Close'], timeperiod=200)
-    df['RSI'] = talib.RSI(df['Close'], timeperiod=14)
-    macd, macdsignal, _ = talib.MACD(df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)
-    df['MACD'] = macd
-    df['MACD_Signal'] = macdsignal
-    upperband, middleband, lowerband = talib.BBANDS(df['Close'], timeperiod=20)
-    df['UpperBand'] = upperband
-    df['MiddleBand'] = middleband
-    df['LowerBand'] = lowerband
+    # ממוצעים אקספוננציאליים
+    df['EMA9'] = ta.ema(df['Close'], length=9)
+    df['EMA20'] = ta.ema(df['Close'], length=20)
+    df['EMA50'] = ta.ema(df['Close'], length=50)
+    df['EMA100'] = ta.ema(df['Close'], length=100)
+    df['EMA200'] = ta.ema(df['Close'], length=200)
 
-    # בדיקות של אינדיקטורים לדוגמה:
+    # אינדיקטורים נוספים
+    df['RSI'] = ta.rsi(df['Close'], length=14)
+    macd = ta.macd(df['Close'])
+    df['MACD'] = macd['MACD_12_26_9']
+    df['MACD_Signal'] = macd['MACDs_12_26_9']
+    bb = ta.bbands(df['Close'], length=20)
+    df['UpperBand'] = bb['BBU_20_2.0']
+    df['LowerBand'] = bb['BBL_20_2.0']
+
     last = df.iloc[-1]
+
     signal = {
         'symbol': symbol,
         'price': last['Close'],
-        'MA_Cross_Long': last['MA9'] > last['MA20'],
-        'MA_Cross_Short': last['MA9'] < last['MA20'],
+        'MA_Cross_Long': last['EMA9'] > last['EMA20'],
+        'MA_Cross_Short': last['EMA9'] < last['EMA20'],
         'RSI': last['RSI'],
         'MACD_Bullish': last['MACD'] > last['MACD_Signal'],
         'MACD_Bearish': last['MACD'] < last['MACD_Signal'],
         'Above_Bollinger': last['Close'] > last['UpperBand'],
         'Below_Bollinger': last['Close'] < last['LowerBand']
     }
-
-    # כאן נוכל להוסיף את הזיהויים החכמים יותר כמו Golden Zone וכו'
 
     return signal
 
