@@ -94,7 +94,7 @@ def main():
                         if half_day:
                             msg += "\nהערה: יום מסחר מקוצר – נפח תנודתי, היזהר."
                         if is_gap:
-                            msg += "\nהערה: תקופת פערי שעון בין ישראל לארה"ב."
+                            msg += 'הערה: תקופת פערי שעון בין ישראל לארה"ב.\n'
 
                         send_discord_message(os.getenv("DISCORD_PUBLIC_WEBHOOK"), msg)
                         break
