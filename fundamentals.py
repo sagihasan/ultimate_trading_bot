@@ -26,14 +26,8 @@ def analyze_fundamentals(symbols):
             else:
                 future_outlook = "תחזית לא זמינה"
 
-            # טקסט מותאם אישית (כמו אייפון 16)
-            future_events = {
-                "AAPL": "צפי להשקת iPhone 16 ברבעון הקרוב",
-                "NVDA": "ביקוש ער לג׳נרציה החדשה של שבבי AI",
-                "META": "פיתוח פלטפורמת VR מתקדמת בשיתוף עם מפתחים",
-                "PLTR": "עלייה בחוזים ממשלתיים חדשים לבינה מלאכותית"
-            }
-            future_event_note = future_events.get(symbol, None)
+            # טקסט מותאם אישית לכל מניה (דוגמה אוטומטית)
+            future_event_note = f"צפי להמשך פעילות בתחום {sector} והשקות עתידיות ברבעון הקרוב" if sector != "Unknown" else None
 
             # סנטימנט חדשותי מ-NewsAPI
             news_url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}&language=en&pageSize=5"
