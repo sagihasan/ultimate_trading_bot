@@ -39,5 +39,5 @@ def send_macro_summary():
         "הבוט מוכן לפעולה."
     )
 
-    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message)
+    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="macro")
 
