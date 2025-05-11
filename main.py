@@ -11,6 +11,15 @@ from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT
 
 load_dotenv()
 
+# Webhooks
+public_webhook = os.getenv("DISCORD_PUBLIC_WEBHOOK")
+private_webhook = os.getenv("DISCORD_PRIVATE_WEBHOOK")
+error_webhook = os.getenv("DISCORD_ERROR_WEBHOOK")
+
+# API Keys
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+
 def is_half_day(nyse_calendar, date):
     schedule = nyse_calendar.schedule.loc[date:date]
     if not schedule.empty:
