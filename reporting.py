@@ -54,4 +54,4 @@ def send_monthly_report():
 
     create_pdf_report(summary_text, PDF_FILE)
 
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, "דו""ח חודשי נשלח. קבצים מצורפים:")
+    send_discord_message(DISCORD_PRIVATE_WEBHOOK, "דו""ח חודשי נשלח. קבצים מצורפים:", message_type="report")
