@@ -19,7 +19,7 @@ STOCK_LIST = [
 # משתני ניהול תיק
 ACCOUNT_SIZE = float(os.getenv("ACCOUNT_SIZE", 951))  # ניתן לשנות בקובץ .env
 RISK_PERCENTAGE = float(os.getenv("RISK_PERCENTAGE", 0.02))
-STOP_LOSS_PERCENT_PERCENT = float(os.getenv("STOP_LOSS_PERCENT", 0.03))
+STOP_LOSS_PERCENT = float(os.getenv("STOP_LOSS_PERCENT", 0.03))
 TAKE_PROFIT_PERCENT = float(os.getenv("TAKE_PROFIT_PERCENT", 0.05))
 
 # Webhooks לדיסקורד
