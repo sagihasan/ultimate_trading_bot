@@ -39,7 +39,6 @@ def detect_peaks_valleys(df):
     return len(peaks) > 0 and len(valleys) > 0
 
 # זיהוי תבניות דגל/משולש
-
 def detect_flag_or_triangle(df):
     recent = df['Close'].iloc[-10:]
     volatility = recent.max() - recent.min()
@@ -49,7 +48,6 @@ def detect_flag_or_triangle(df):
     return False
 
 # הפונקציה הראשית שמחזירה ניתוח טכני חכם
-
 def run_technical_analysis(symbols):
     results = []
     for symbol in symbols:
@@ -69,12 +67,14 @@ def run_technical_analysis(symbols):
             atr = ta.volatility.AverageTrueRange(df['High'], df['Low'], df['Close']).average_true_range()
             atr_last = atr.iloc[-1] if not atr.empty else 0
 
+            can_leverage = atr_last < df['Close'].iloc[-1] * 0.05
+
             conditions = {
                 "RSI מעל 50": rsi.iloc[-1] > 50,
                 "MACD מעל קו אות": macd_line.iloc[-1] > macd_signal.iloc[-1],
                 "EMA9 מעל EMA20": ema9.iloc[-1] > ema20.iloc[-1],
                 "EMA20 מעל EMA50": ema20.iloc[-1] > ema50.iloc[-1],
-                "ATR נמוך מדי למנף": atr_last < df['Close'].iloc[-1] * 0.05,  # תנודתיות מתונה
+                "ATR נמוך מדי למנף": can_leverage,
                 "מגמת עלייה": determine_trend(df) == "מגמת עלייה"
             }
             true_count = sum(conditions.values())
@@ -95,6 +95,7 @@ def run_technical_analysis(symbols):
                 "pattern_flag_or_triangle": pattern_flag,
                 "score": score,
                 "atr": atr_last,
+                "can_leverage": can_leverage,
                 "conditions": conditions
             })
         except Exception as e:
