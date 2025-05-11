@@ -2,7 +2,7 @@
 
 import yfinance as yf
 import pandas as pd
-import talib
+import ta
 from config import STOCK_LIST
 
 # זיהוי נר היפוך פשוט (Hammer / Shooting Star)
