@@ -4,6 +4,10 @@ def fetch_fundamentals(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
 
+    market_cap = info.get('marketCap')
+if market_cap is None:
+    return None
+
     fundamentals = {
         'symbol': symbol,
         'market_cap': info.get('marketCap'),
