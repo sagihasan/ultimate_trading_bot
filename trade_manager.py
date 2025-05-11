@@ -13,6 +13,7 @@ def manage_open_trades(fundamentals, technicals):
         reversal_zone = stock.get("reversal_zone")
         pattern_flag = stock.get("pattern_flag_or_triangle")
         trend = stock.get("trend_daily")
+        can_leverage = stock.get("can_leverage", False)
 
         fund = fundamentals.get(symbol, {})
         outlook = fund.get("future_outlook")
@@ -43,6 +44,7 @@ def manage_open_trades(fundamentals, technicals):
             + (f"נר היפוך מזוהה: {candle}\n" if candle else "")
             + ("נמצאת באזור פסגות/תחתיות\n" if reversal_zone else "")
             + ("נמצאת בתבנית דגל/משולש\n" if pattern_flag else "") +
+            f"מינוף: {'כן' if can_leverage else 'לא'}\n"
             f"הבוט קובע: להיכנס לעסקה\n"
             f"יחס סיכוי-סיכון: 1:2\n"
             f"סיכון לעסקה: {round(risk_amount, 2)}$ ({int(RISK_PERCENTAGE * 100)}%)"
