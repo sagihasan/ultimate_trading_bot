@@ -26,18 +26,18 @@ def analyze_stock(symbol):
         return None
 
     # ממוצעים אקספוננציאליים
-    df['EMA9'] = ta.ema(df['Close'], length=9)
-    df['EMA20'] = ta.ema(df['Close'], length=20)
-    df['EMA50'] = ta.ema(df['Close'], length=50)
-    df['EMA100'] = ta.ema(df['Close'], length=100)
-    df['EMA200'] = ta.ema(df['Close'], length=200)
+    df['EMA9'] = pandas_ta.ema(df['Close'], length=9)
+    df['EMA20'] = pandas_ta.ema(df['Close'], length=20)
+    df['EMA50'] = pandas_ta.ema(df['Close'], length=50)
+    df['EMA100'] = pandas_ta.ema(df['Close'], length=100)
+    df['EMA200'] = pandas_ta.ema(df['Close'], length=200)
 
     # אינדיקטורים נוספים
-    df['RSI'] = ta.rsi(df['Close'], length=14)
-    macd = ta.macd(df['Close'])
+    df['RSI'] = pandas_ta.rsi(df['Close'], length=14)
+    macd = pandas_ta.macd(df['Close'])
     df['MACD'] = macd['MACD_12_26_9']
     df['MACD_Signal'] = macd['MACDs_12_26_9']
-    bb = ta.bbands(df['Close'], length=20)
+    bb = pandas_ta.bbands(df['Close'], length=20)
     df['UpperBand'] = bb['BBU_20_2.0']
     df['LowerBand'] = bb['BBL_20_2.0']
 
