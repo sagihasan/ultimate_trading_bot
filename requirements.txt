@@ -1,7 +1,11 @@
-requests
-python-dotenv
 yfinance
 pandas
-numpy
-ta
+matplotlib
+fpdf
+requests
+python-dotenv
 exchange_calendars
+scipy
+talib
+openpyxl
+ta
