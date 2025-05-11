@@ -42,7 +42,7 @@ def main():
 
         # הודעת פתיחה יום ראשון 11:00 לערוץ הפרטי
         if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
-            send_discord_message(os.getenv("DISCORD_PRIVATE_WEBHOOK"), "התחלתי את השבוע. הבוט מוכן.")
+            send_discord_message(os.getenv("DISCORD_PRIVATE_WEBHOOK"), "התחלתי את השבוע. הבוט מוכן.", message_type="start")
 
         # סיכום מאקרו שבועי – יום ראשון 12:00
         if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
@@ -50,7 +50,7 @@ def main():
 
         # המשך פעילות רגילה רק אם זה יום מסחר
         if today != market_day:
-            send_discord_message(DISCORD_PUBLIC_WEBHOOK, "אין מסחר היום לפי לוח שנה של NYSE.")
+            send_discord_message(DISCORD_PUBLIC_WEBHOOK, "אין מסחר היום לפי לוח שנה של NYSE.", message_type="market")
             return
 
         half_day = is_half_day(nyse, today)
@@ -76,7 +76,7 @@ def main():
             time.sleep(30)
 
     except Exception as e:
-        send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט: {str(e)}")
+        send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט: {str(e)}", message_type="error")
 
 if __name__ == "__main__":
     main()
