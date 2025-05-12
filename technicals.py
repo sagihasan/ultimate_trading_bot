@@ -1,47 +1,61 @@
+import yfinance as yf
 import pandas as pd
+import ta
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT
 
-try:
-    import talib
-    TALIB_AVAILABLE = True
-except ImportError:
-    import pandas_ta as ta
-    TALIB_AVAILABLE = False
 
-def run_technical_analysis(stock_list):
+def run_technical_analysis(symbols):
     results = []
-    for stock in stock_list:
+    for symbol in symbols:
         try:
-            df = stock["data"]  # הנחה שיש key בשם "data" עם DataFrame
-            close = df["Close"]
+            data = yf.download(symbol, period="6mo", interval="1d")
+            if data.empty or len(data) < 50:
+                continue
 
-            if TALIB_AVAILABLE:
-                rsi = talib.RSI(close)
-                macd, macdsignal, _ = talib.MACD(close)
-            else:
-                rsi = ta.rsi(close=close)
-                macd_df = ta.macd(close=close)
-                macd = macd_df["MACD_12_26_9"]
-                macdsignal = macd_df["MACDs_12_26_9"]
+            df = data.copy()
+            df.dropna(inplace=True)
 
-            last_rsi = rsi.iloc[-1] if not rsi.isnull().all() else None
-            last_macd = macd.iloc[-1] if not macd.isnull().all() else None
-            last_signal = macdsignal.iloc[-1] if not macdsignal.isnull().all() else None
+            df["rsi"] = ta.momentum.RSIIndicator(close=df["Close"], window=14).rsi()
+            df["macd"] = ta.trend.MACD(close=df["Close"]).macd_diff()
+            df["ma50"] = ta.trend.SMAIndicator(close=df["Close"], window=50).sma_indicator()
+            df["ma200"] = ta.trend.SMAIndicator(close=df["Close"], window=200).sma_indicator()
+            df["bb_upper"] = ta.volatility.BollingerBands(close=df["Close"]).bollinger_hband()
+            df["bb_lower"] = ta.volatility.BollingerBands(close=df["Close"]).bollinger_lband()
+            df.dropna(inplace=True)
+
+            latest = df.iloc[-1]
+            previous = df.iloc[-2]
 
             score = 0
-            if last_rsi and last_rsi > 50:
+
+            if latest["rsi"] > 50:
                 score += 1
-            if last_macd and last_signal and last_macd > last_signal:
+            if latest["macd"] > 0 and previous["macd"] < 0:
+                score += 1
+            if latest["Close"] > latest["ma50"]:
+                score += 1
+            if latest["Close"] > latest["ma200"]:
+                score += 1
+            if latest["Close"] < latest["bb_upper"] and latest["Close"] > latest["bb_lower"]:
                 score += 1
 
-            results.append({
-                "symbol": stock["symbol"],
-                "rsi": last_rsi,
-                "macd": last_macd,
-                "macd_signal": last_signal,
-                "score": score
-            })
+            if score >= 3:
+                price = latest["Close"]
+                stop_loss = round(price * (1 - STOP_LOSS_PERCENT / 100), 2)
+                take_profit = round(price * (1 + TAKE_PROFIT_PERCENT / 100), 2)
+                risk_amount = ACCOUNT_SIZE * (RISK_PERCENTAGE / 100)
+                position_size = round(risk_amount / (price - stop_loss), 2)
+
+                results.append({
+                    "symbol": symbol,
+                    "score": score,
+                    "price": round(price, 2),
+                    "stop_loss": stop_loss,
+                    "take_profit": take_profit,
+                    "position_size": position_size
+                })
         except Exception as e:
-            print(f"שגיאה בניתוח טכני של {stock['symbol']}: {e}")
+            print(f"Error analyzing {symbol}: {e}")
 
-    return results
+    return sorted(results, key=lambda x: x["score"], reverse=True)
 
