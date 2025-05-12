@@ -97,5 +97,5 @@ def main():
             send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט: {str(e)}", message_type="error")
             error_logged = True
 
-if __name__ == "__main__":
+def run_main():
     main()
