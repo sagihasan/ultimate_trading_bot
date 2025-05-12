@@ -69,7 +69,7 @@ def main():
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
                 best_signal = "איתות סופי לדוגמה..."  # כאן יהיה חישוב העסקה החזקה ביותר
-                send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal")
+                send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal_main")
                 break
             time.sleep(30)
 
