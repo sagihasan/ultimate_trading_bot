@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from utils import send_discord_message
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK,DISCORD_PRIVATE_WEBHOOK, STOCK_LIST, ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, STOCK_LIST
 from macro import send_macro_summary
 
 load_dotenv()
@@ -40,15 +40,12 @@ def main():
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
         market_day = get_current_market_day(nyse)
 
-        # הודעת פתיחה יום ראשון 11:00 לערוץ הפרטי
         if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
             send_discord_message(os.getenv("DISCORD_PRIVATE_WEBHOOK"), "התחלתי את השבוע. הבוט מוכן.", message_type="start")
 
-        # סיכום מאקרו שבועי – יום ראשון 12:00
         if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
             send_macro_summary()
 
-        # המשך פעילות רגילה רק אם זה יום מסחר
         if today != market_day:
             send_discord_message(DISCORD_PUBLIC_WEBHOOK, "אין מסחר היום לפי לוח שנה של NYSE.", message_type="market")
             return
@@ -71,7 +68,8 @@ def main():
             if now_time == signal_time:
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
-                # כאן קוראים לפונקציית איתות (מפורקת לקובץ אחר)
+                best_signal = "איתות סופי לדוגמה..."  # כאן יהיה חישוב העסקה החזקה ביותר
+                send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal")
                 break
             time.sleep(30)
 
