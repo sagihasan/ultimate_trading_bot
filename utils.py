@@ -1,4 +1,4 @@
-# utils.py – שליחת דיסקורד, שמירת קבצים, חישובי מיסים, גרפים, PDF
+# utils.py – שליחה לדיסקורד, שמירה לקובץ, גרפים, דוחות, חישובי מס
 
 import os
 import requests
@@ -20,7 +20,7 @@ def send_discord_message(webhook_url, message, message_type="default"):
 
         # בודק אם עברו 15 שניות מאז השליחה האחרונה מאותו סוג
         if key in last_sent_times and now - last_sent_times[key] < 15:
-            print(f"נמנעה שליחה ({message_type}) כדי למנוע עומס (429).")
+            print(f"נמנעה שליחה ({message_type}) (429) כדי למנוע עומס.")
             return
 
         data = {"content": message}
@@ -29,7 +29,7 @@ def send_discord_message(webhook_url, message, message_type="default"):
         last_sent_times[key] = now
 
     except Exception as e:
-        print(f"שגיאה בשליחה לדיסקורד ({message_type}): {e}")
+        print(f"שגיאה בשליחה לדיסקורד: {e}")
 
 # שליפה בטוחה ממילון מקונן
 
@@ -70,7 +70,7 @@ def create_pdf_report(summary_text, filename="report.pdf"):
         pdf.cell(200, 10, txt=line, ln=True, align='L')
     pdf.output(filename)
 
-# חישוב מס ומגן מס
+# חישוב מס ורווח נטו
 
 def calculate_tax(total_profit, tax_rate=0.25, tax_shield=0):
     tax_due = max((total_profit * tax_rate) - tax_shield, 0)
