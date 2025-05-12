@@ -3,6 +3,7 @@ import time
 from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
+import pandas as pd  # תיקון חשוב
 from dotenv import load_dotenv
 
 from utils import send_discord_message, already_sent_holiday_message, mark_holiday_message_sent
@@ -11,11 +12,8 @@ from technicals import run_technical_analysis
 from config import (
     ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT,
     DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK,
-    ALPHA_VANTAGE_API_KEY, NEWS_API_KEY, STOCK_LIST
+    STOCK_LIST
 )
-from macro import send_macro_summary
-
-import pandas as pd
 
 load_dotenv()
 
@@ -30,12 +28,12 @@ def is_half_day(nyse_calendar, date):
 def get_today_holiday_name():
     try:
         import pandas_market_calendars as mcal
-        nyse = mcal.get_calendar('NYSE')
+        nyse = mcal.get_calendar('XNYS')
         today = datetime.now(pytz.timezone("America/New_York")).date()
         holidays = nyse.holidays().holidays
         for holiday in holidays:
             if holiday.date() == today:
-                return "NYSE Holiday"
+                return nyse.name
     except Exception:
         return None
     return None
@@ -46,19 +44,16 @@ def main():
         today = datetime.now(pytz.timezone("America/New_York")).date()
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
 
-        # התחלת שבוע ודוח מאקרו
+        # בדיקה אם היום הוא יום ראשון בבוקר לדוח פתיחה
         if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
             send_discord_message(DISCORD_PRIVATE_WEBHOOK, "התחלתי את השבוע. הבוט מוכן.", message_type="start")
-        if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
-            send_macro_summary()
 
-        # בדיקה אם היום הוא יום מסחר רגיל
+        # בדיקה אם היום אין מסחר
         try:
-            start = today - timedelta(days=1)
-            end = today + timedelta(days=1)
-            sessions = nyse.sessions_in_range(pd.Timestamp(start), pd.Timestamp(end))
-            trading_days = [d.date() for d in sessions]
-            if today not in trading_days:
+            start = pd.Timestamp(today - timedelta(days=1), tz="America/New_York")
+            end = pd.Timestamp(today + timedelta(days=1), tz="America/New_York")
+            sessions = nyse.sessions_in_range(start, end)
+            if today not in sessions.date:
                 date_str = today.strftime("%Y-%m-%d")
                 if not already_sent_holiday_message(date_str):
                     holiday_name = get_today_holiday_name()
@@ -91,7 +86,7 @@ def main():
             if now_time == signal_time:
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
-                best_signal = "איתות סופי לדוגמה..."  # כאן ייכנס ניתוח חכם בפועל
+                best_signal = "איתות סופי לדוגמה..."  # כאן יבוא האלגוריתם החכם
                 send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal_main")
                 break
             time.sleep(30)
