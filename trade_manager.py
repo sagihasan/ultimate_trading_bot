@@ -50,4 +50,4 @@ def manage_open_trades(fundamentals, technicals):
             f"סיכון לעסקה: {round(risk_amount, 2)}$ ({int(RISK_PERCENTAGE * 100)}%)"
         )
 
-        send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="signal")
+        send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="signal_trade")
