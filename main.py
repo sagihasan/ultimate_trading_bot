@@ -1,43 +1,19 @@
-# main.py – קובץ ראשי של הבוט
-
+# main.py
 import os
 import time
+import json
 from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
-import pandas as pd
-import pandas_market_calendars as mcal
 from dotenv import load_dotenv
 
-from utils import send_discord_message
+from utils import send_discord_message, already_sent_holiday_message, mark_holiday_message_sent, get_today_holiday_name
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
 from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, STOCK_LIST
 from macro import send_macro_summary
 
 load_dotenv()
-
-def already_sent_holiday_message(date_str):
-    if os.path.exists("last_holiday.txt"):
-        with open("last_holiday.txt", "r") as f:
-            return date_str in f.read()
-    return False
-
-def mark_holiday_message_sent(date_str):
-    with open("last_holiday.txt", "w") as f:
-        f.write(date_str)
-
-def get_today_holiday_name():
-    nyse = mcal.get_calendar("NYSE")
-    today = datetime.now().date()
-    schedule = nyse.schedule.loc[str(today):str(today)]
-    if schedule.empty:
-        holidays = nyse.holidays()
-        if today in holidays.holidays:
-            return holidays.name[holidays.holidays == today].values[0]
-        else:
-            return "לא זוהה חג ספציפי."
-    return None
 
 def is_half_day(nyse_calendar, date):
     schedule = nyse_calendar.schedule.loc[date:date]
@@ -49,7 +25,7 @@ def is_half_day(nyse_calendar, date):
 
 def get_current_market_day(nyse):
     now = datetime.now(pytz.timezone("America/New_York")).date()
-    return nyse.sessions_in_range(now - timedelta(days=1), now + timedelta(days=1))[-1].date()
+    return nyse.valid_days(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1)).date[-1]
 
 def is_dst_gap_period():
     today = datetime.now().date()
@@ -63,12 +39,6 @@ def main():
         today = datetime.now(pytz.timezone("America/New_York")).date()
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
         market_day = get_current_market_day(nyse)
-
-        if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
-            send_discord_message(os.getenv("DISCORD_PRIVATE_WEBHOOK"), "התחלתי את השבוע. הבוט מוכן.", message_type="start")
-
-        if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
-            send_macro_summary()
 
         if today != market_day:
             date_str = today.strftime("%Y-%m-%d")
