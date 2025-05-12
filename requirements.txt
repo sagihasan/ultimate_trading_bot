@@ -1,10 +1,10 @@
-yfinance
 pandas
+numpy
+requests
 matplotlib
 fpdf
-requests
 python-dotenv
-exchange_calendars
-scipy
-openpyxl
+pytz
+yfinance
+exchange_calendars>=4.0.0,<5.0.0
 ta
