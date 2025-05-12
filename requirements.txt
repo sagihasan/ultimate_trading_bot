@@ -6,5 +6,6 @@ fpdf
 python-dotenv
 pytz
 yfinance
-exchange_calendars>=4.0.0,<5.0.0
 ta
+openpyxl
+exchange_calendars>=4.0.0,<5.0.0
