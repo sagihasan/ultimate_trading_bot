@@ -12,7 +12,7 @@ from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT
 from macro import send_macro_summary
 
 load_dotenv()
-error_logged = False  # למניעת כפילות הודעות שגיאה
+error_logged = False
 
 def is_half_day(nyse_calendar, date):
     schedule = nyse_calendar.schedule.loc[date:date]
@@ -42,7 +42,6 @@ def main():
         today = datetime.now(pytz.timezone("America/New_York")).date()
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
 
-        # הודעת פתיחה ודוח מאקרו ביום ראשון
         if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
             send_discord_message(DISCORD_PRIVATE_WEBHOOK, "התחלתי את השבוע. הבוט מוכן.", message_type="start")
 
@@ -68,7 +67,6 @@ def main():
                 error_logged = True
             return
 
-        # קביעת שעת איתות
         half_day = is_half_day(nyse, today)
         is_dst_gap = (datetime(today.year, 3, 10) <= today <= datetime(today.year, 3, 29))
 
@@ -87,7 +85,7 @@ def main():
             if now_time == signal_time:
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
-                best_signal = "איתות סופי לדוגמה..."  # כאן תגיע הלוגיקה שלך לבחירת המניה
+                best_signal = "איתות סופי לדוגמה..."  # כאן תבוא הלוגיקה החכמה
                 send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal_main")
                 break
             time.sleep(30)
@@ -97,5 +95,4 @@ def main():
             send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט: {str(e)}", message_type="error")
             error_logged = True
 
-def run_main():
-    main()
+# חשוב! אל תריץ כאן main() ישירות
