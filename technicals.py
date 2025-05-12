@@ -1,4 +1,4 @@
-import import yfinance as yf
+import yfinance as yf
 import pandas as pd
 import ta
 from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT
