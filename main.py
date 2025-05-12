@@ -1,7 +1,5 @@
-# main.py
 import os
 import time
-import json
 from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
@@ -10,7 +8,7 @@ from dotenv import load_dotenv
 from utils import send_discord_message, already_sent_holiday_message, mark_holiday_message_sent, get_today_holiday_name
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK, STOCK_LIST, ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, STOCK_LIST
 from macro import send_macro_summary
 
 load_dotenv()
@@ -24,8 +22,11 @@ def is_half_day(nyse_calendar, date):
     return False
 
 def get_current_market_day(nyse):
-    now = datetime.now(pytz.timezone("America/New_York")).date()
-    return nyse.valid_days(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1)).date[-1]
+    now = datetime.now(pytz.timezone("America/New_York"))
+    schedule = nyse.schedule.loc[now.date():now.date()]
+    if not schedule.empty:
+        return now.date()
+    return None
 
 def is_dst_gap_period():
     today = datetime.now().date()
@@ -40,7 +41,13 @@ def main():
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
         market_day = get_current_market_day(nyse)
 
-        if today != market_day:
+        if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
+            send_discord_message(os.getenv("DISCORD_PRIVATE_WEBHOOK"), "התחלתי את השבוע. הבוט מוכן.", message_type="start")
+
+        if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
+            send_macro_summary()
+
+        if market_day is None:
             date_str = today.strftime("%Y-%m-%d")
             if not already_sent_holiday_message(date_str):
                 holiday_name = get_today_holiday_name()
