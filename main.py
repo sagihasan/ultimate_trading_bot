@@ -5,6 +5,8 @@ import time
 from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
+import pandas as pd
+import pandas_market_calendars as mcal
 from dotenv import load_dotenv
 
 from utils import send_discord_message
@@ -14,6 +16,28 @@ from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT
 from macro import send_macro_summary
 
 load_dotenv()
+
+def already_sent_holiday_message(date_str):
+    if os.path.exists("last_holiday.txt"):
+        with open("last_holiday.txt", "r") as f:
+            return date_str in f.read()
+    return False
+
+def mark_holiday_message_sent(date_str):
+    with open("last_holiday.txt", "w") as f:
+        f.write(date_str)
+
+def get_today_holiday_name():
+    nyse = mcal.get_calendar("NYSE")
+    today = datetime.now().date()
+    schedule = nyse.schedule.loc[str(today):str(today)]
+    if schedule.empty:
+        holidays = nyse.holidays()
+        if today in holidays.holidays:
+            return holidays.name[holidays.holidays == today].values[0]
+        else:
+            return "לא זוהה חג ספציפי."
+    return None
 
 def is_half_day(nyse_calendar, date):
     schedule = nyse_calendar.schedule.loc[date:date]
@@ -47,7 +71,14 @@ def main():
             send_macro_summary()
 
         if today != market_day:
-            send_discord_message(DISCORD_PUBLIC_WEBHOOK, "אין מסחר היום לפי לוח שנה של NYSE.", message_type="market")
+            date_str = today.strftime("%Y-%m-%d")
+            if not already_sent_holiday_message(date_str):
+                holiday_name = get_today_holiday_name()
+                message = "אין מסחר היום לפי לוח שנה של NYSE."
+                if holiday_name:
+                    message += f" חג: {holiday_name}."
+                send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="market")
+                mark_holiday_message_sent(date_str)
             return
 
         half_day = is_half_day(nyse, today)
