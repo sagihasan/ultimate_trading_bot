@@ -1,57 +1,53 @@
-# reporting.py – יצירת ושליחת דוחות שבועיים וחודשיים
-
-import os
-from datetime import datetime
+import pandas as pd
+from utils import save_to_excel, create_return_chart, create_pdf_report, calculate_tax, send_discord_message
 from config import DISCORD_PRIVATE_WEBHOOK
-from utils import save_to_excel, create_return_chart, create_pdf_report, send_discord_message, calculate_tax
+from datetime import datetime
 
-# נתונים לדוגמה – בפועל יגיעו מקבצי מעקב עסקאות
-sample_trades = [
-    {"symbol": "AAPL", "date": "2024-05-12", "return": 4.5},
-    {"symbol": "NVDA", "date": "2024-05-13", "return": 2.3},
-    {"symbol": "PLTR", "date": "2024-05-14", "return": -1.2},
-]
 
-# שמות קבצים
-EXCEL_FILE = "trades_log.xlsx"
-PDF_FILE = "report.pdf"
-CHART_FILE = "cumulative_return.png"
+def generate_weekly_report(trades, returns):
+    date_range = get_week_range()
+    summary_text = create_summary_text(trades, returns, date_range)
+    chart_path = "cumulative_return.png"
+    pdf_path = "weekly_report.pdf"
+    excel_path = "signals_log.xlsx"
 
-# שליחת דוח שבועי
+    create_return_chart(returns, filename=chart_path)
+    create_pdf_report(summary_text, filename=pdf_path)
+    save_to_excel(trades, filename=excel_path)
 
-def send_weekly_report():
-    returns = [t["return"] for t in sample_trades]
-    cumulative = [sum(returns[:i+1]) for i in range(len(returns))]
+    send_discord_message(DISCORD_PRIVATE_WEBHOOK, f"דו"ח שבועי מוכן לתאריכים: {date_range}", message_type="weekly_report")
 
-    save_to_excel(sample_trades, EXCEL_FILE)
-    create_return_chart(cumulative, CHART_FILE)
 
-    summary_text = "דוח שבועי – {}-{}\n".format("18/5", "23/5")
-    summary_text += f"סה""כ תשואה: {round(sum(returns), 2)}%\n"
-    summary_text += "עסקאות: {} | הצלחות: {} | כישלונות: {}\n".format(
-        len(sample_trades), sum(1 for t in returns if t > 0), sum(1 for t in returns if t <= 0)
-    )
-    create_pdf_report(summary_text, PDF_FILE)
+def generate_monthly_report(trades, returns):
+    today = datetime.today()
+    month_name = today.strftime("%B")
+    summary_text = create_summary_text(trades, returns, f"חודש {month_name}")
+    chart_path = "monthly_return.png"
+    pdf_path = "monthly_report.pdf"
+    excel_path = "monthly_signals_log.xlsx"
 
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, "דוח שבועי נשלח. קבצים מצורפים:", message_type="report")
+    create_return_chart(returns, filename=chart_path)
+    create_pdf_report(summary_text, filename=pdf_path)
+    save_to_excel(trades, filename=excel_path)
 
-# שליחת דוח חודשי כולל חישוב מס
+    send_discord_message(DISCORD_PRIVATE_WEBHOOK, f"דו"ח חודשי עבור {month_name} מוכן. ראה קבצים מצורפים.", message_type="monthly_report")
 
-def send_monthly_report():
-    returns = [t["return"] for t in sample_trades]
-    total_return = sum(returns)
-    total_profit = round(951 * (total_return / 100), 2)
 
-    tax_result = calculate_tax(total_profit, tax_rate=0.25, tax_shield=0)
+def get_week_range():
+    today = datetime.today()
+    start = today - pd.to_timedelta(today.weekday(), unit="D")
+    end = start + pd.to_timedelta(6, unit="D")
+    return f"{start.strftime('%d/%m')}–{end.strftime('%d/%m')}"
 
-    save_to_excel(sample_trades, EXCEL_FILE)
-    create_return_chart([sum(returns[:i+1]) for i in range(len(returns))], CHART_FILE)
 
-    summary_text = "דו""ח חודשי – חודש מאי\n"
-    summary_text += f"רווח חודשי: {total_profit}$ ({round(total_return, 2)}%)\n"
-    summary_text += f"מס (25%): {round(tax_result['tax_due'], 2)}$\n"
-    summary_text += f"רווח לאחר מס: {round(tax_result['net_profit'], 2)}$\n"
+def create_summary_text(trades, returns, date_range):
+    total_profit = sum([t.get("profit", 0) for t in trades])
+    tax_data = calculate_tax(total_profit)
+    win_count = sum(1 for t in trades if t.get("profit", 0) > 0)
+    loss_count = len(trades) - win_count
+    win_rate = (win_count / len(trades)) * 100 if trades else 0
 
-    create_pdf_report(summary_text, PDF_FILE)
-
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, "דו""ח חודשי נשלח. קבצים מצורפים:", message_type="report")
+    summary = f"דו"ח ({date_range})\n"
+    summary += f"סה\"כ עסקאות: {len(trades)} | הצלחות: {win_count} | כישלונות: {loss_count} | אחוז הצלחה: {win_rate:.1f}%\n"
+    summary += f"רווח כולל: {tax_data['total_profit']}$ | מס: {tax_data['tax_due']}$ | רווח נטו: {tax_data['net_profit']}$\n"
+    return summary
