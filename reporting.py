@@ -33,7 +33,7 @@ def send_weekly_report():
     )
     create_pdf_report(summary_text, PDF_FILE)
 
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, "דוח שבועי נשלח. קבצים מצורפים:")
+    send_discord_message(DISCORD_PRIVATE_WEBHOOK, "דוח שבועי נשלח. קבצים מצורפים:", message_type="report")
 
 # שליחת דוח חודשי כולל חישוב מס
 
