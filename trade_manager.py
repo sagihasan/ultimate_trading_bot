@@ -4,21 +4,23 @@ from datetime import datetime
 
 trade_management_log = []
 
-
 def manage_trades(open_trades):
     for trade in open_trades:
-        symbol = trade["symbol"]
-        current_price = trade["current_price"]
-        entry_price = trade["entry_price"]
-        stop_loss = trade["stop_loss"]
-        take_profit = trade["take_profit"]
+        symbol = trade.get("symbol")
+        current_price = trade.get("current_price")
+        entry_price = trade.get("entry_price")
+        stop_loss = trade.get("stop_loss")
+        take_profit = trade.get("take_profit")
 
-        # דוגמה לניהול עסקה: עדכון סטופ לוס כשהרווח עובר 3%
+        if not all([symbol, current_price, entry_price, stop_loss, take_profit]):
+            continue  # דילוג אם חסרים נתונים
+
+        # תנאי לניהול עסקה: המחיר התקדם ב־3% מהרמה ההתחלתית
         if current_price >= entry_price * 1.03:
             new_stop = round(entry_price * 1.01, 2)
             message = (
                 f"ניהול עסקה ({symbol}):\n"
-                f"המחיר התקדם מעל 3%, הבוט מעדכן סטופ לוס ל-{new_stop}$\n"
+                f"המחיר התקדם מעל 3%, הבוט מעדכן סטופ לוס ל־{new_stop}$\n"
                 f"טייק פרופיט נשאר על {take_profit}$"
             )
             send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="management")
