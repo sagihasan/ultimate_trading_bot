@@ -1,17 +1,14 @@
-import threading
-import time
-from main import main as run_main
+from main import main
 from scheduler import run_scheduler
+import threading
 
 if __name__ == "__main__":
-    # תהליך ראשון – הרצת בוט יומי (איתותים)
-    main_thread = threading.Thread(target=run_main)
-    main_thread.start()
-
-    # תהליך שני – ניהול עסקאות ודוחות
+    # הפעלת ניהול עסקאות ודוחות ברקע
     scheduler_thread = threading.Thread(target=run_scheduler)
     scheduler_thread.start()
 
-    # שמירה על תהליכים רצים
-    while True:
-        time.sleep(60)
+    # הרצת הבוט הראשי של האיתות
+    main()
+
+    # ממתין לסיום של scheduler (רק אם תרצה)
+    scheduler_thread.join()
