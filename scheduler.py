@@ -7,24 +7,20 @@ from utils import load_trade_data, load_open_trades
 def run_scheduler():
     while True:
         now = datetime.now()
-        day = now.weekday()  # 0 = Monday, 6 = Sunday
+        day = now.weekday()
         hour = now.hour
         minute = now.minute
 
-        # טען נתוני עסקאות
         trades = load_trade_data()
         returns = [t.get("cumulative_return", 0) for t in trades]
         open_trades = load_open_trades()
 
-        # דוח שבועי – כל שבת ב־12:00
         if day == 5 and hour == 12 and minute == 0:
             generate_weekly_report(trades, returns)
 
-        # דוח חודשי – כל 1 לחודש ב־12:00
         if now.day == 1 and hour == 12 and minute == 0:
             generate_monthly_report(trades, returns)
 
-        # ניהול עסקאות – כל חצי שעה בין 10:00–22:30 אם יש עסקאות פתוחות
         if 10 <= hour <= 22 and minute in [0, 30] and open_trades:
             manage_trades(open_trades)
 
