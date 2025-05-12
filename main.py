@@ -8,11 +8,7 @@ from dotenv import load_dotenv
 from utils import send_discord_message, already_sent_holiday_message, mark_holiday_message_sent
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from config import (
-    ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT,
-    DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK,
-    ALPHA_VANTAGE_API_KEY, NEWS_API_KEY, STOCK_LIST
-)
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK, ALPHA_VANTAGE_API_KEY, NEWS_API_KEY, STOCK_LIST
 from macro import send_macro_summary
 
 load_dotenv()
@@ -44,17 +40,20 @@ def main():
         today = datetime.now(pytz.timezone("America/New_York")).date()
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
 
-        # התחלה ודוח מאקרו
+        # בדיקת יום ראשון בבוקר - התחלה ודוח מאקרו
         if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
             send_discord_message(DISCORD_PRIVATE_WEBHOOK, "התחלתי את השבוע. הבוט מוכן.", message_type="start")
+
         if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
             send_macro_summary()
 
-        # בדיקה אם אין מסחר
+        # בדיקה אם היום הוא יום מסחר
         try:
-            sessions = nyse.sessions_in_range(now - timedelta(days=1), now + timedelta(days=1))
-            valid_days = [d.date() for d in sessions]
-            if today not in valid_days:
+            start = today - timedelta(days=1)
+            end = today + timedelta(days=1)
+            sessions = nyse.sessions_in_range(pd.Timestamp(start), pd.Timestamp(end))
+            trading_days = [d.date() for d in sessions]
+            if today not in trading_days:
                 date_str = today.strftime("%Y-%m-%d")
                 if not already_sent_holiday_message(date_str):
                     holiday_name = get_today_holiday_name()
@@ -68,13 +67,13 @@ def main():
             send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בזיהוי יום מסחר תקין: {str(e)}", message_type="error")
             return
 
-        # הגדרת שעה לפי סוג היום
+        # בדיקת האם מדובר ביום מסחר מקוצר או בתקופת פערי שעון
         half_day = is_half_day(nyse, today)
         is_dst_gap = (datetime(today.year, 3, 10) <= today <= datetime(today.year, 3, 29))
-        close_time = datetime.strptime("13:00", "%H:%M").time() if half_day else datetime.strptime("16:00", "%H:%M").time()
 
         if half_day:
-            signal_time = (datetime.combine(today, close_time) - timedelta(minutes=20)).strftime("%H:%M")
+            close_time = datetime.combine(today, datetime.strptime("13:00", "%H:%M").time())
+            signal_time = (close_time - timedelta(minutes=20)).strftime("%H:%M")
         elif is_dst_gap:
             signal_time = "21:40"
         else:
@@ -87,13 +86,7 @@ def main():
             if now_time == signal_time:
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
-
-                best_signal = "איתות לדוגמה | בוצע ניתוח מלא. כניסה מאושרת!"
-                if half_day:
-                    best_signal += "\n**יום מסחר מקוצר – כניסה מאושרת. סיום מסחר ב־13:00 שעון ניו יורק / 20:00 שעון ישראל**"
-                elif is_dst_gap:
-                    best_signal += "\n**תקופת פערי שעון – כניסה מאושרת. סיום מסחר ב־22:00 ישראל / 15:00 ניו יורק**"
-
+                best_signal = "איתות סופי לדוגמה..."  # כאן יבוא האלגוריתם החכם
                 send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal_main")
                 break
             time.sleep(30)
