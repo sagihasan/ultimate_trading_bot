@@ -1,5 +1,3 @@
-# macro.py – שליחת סיכום מאקרו שבועי כולל סקטורים ואירועים
-
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
 from config import STOCK_LIST, DISCORD_PUBLIC_WEBHOOK
@@ -7,7 +5,7 @@ from utils import send_discord_message
 import datetime
 from collections import defaultdict
 
-# שליחת הודעת סיכום שבועית בכל יום ראשון ב־12:00
+# שליחת הודעת סיכום מאקרו בכל יום ראשון ב־12:00
 
 def send_macro_summary():
     fundamentals = analyze_fundamentals(STOCK_LIST)
