@@ -12,6 +12,7 @@ from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT
 from macro import send_macro_summary
 
 load_dotenv()
+error_logged = False  # למניעת כפילות הודעות שגיאה
 
 def is_half_day(nyse_calendar, date):
     schedule = nyse_calendar.schedule.loc[date:date]
@@ -35,22 +36,22 @@ def get_today_holiday_name():
     return None
 
 def main():
+    global error_logged
     try:
         nyse = ec.get_calendar("XNYS")
         today = datetime.now(pytz.timezone("America/New_York")).date()
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
 
-        # בדיקת יום ראשון בבוקר - התחלה ודוח מאקרו
+        # הודעת פתיחה ודוח מאקרו ביום ראשון
         if today.weekday() == 6 and now.strftime("%H:%M") == "11:00":
             send_discord_message(DISCORD_PRIVATE_WEBHOOK, "התחלתי את השבוע. הבוט מוכן.", message_type="start")
 
         if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
             send_macro_summary()
 
-        # בדיקה אם אין מסחר היום לפי לוח השנה של הבורסה
         try:
-            sessions = nyse.sessions_in_range(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1))
-return sessions[-1].date()
+            sessions = nyse.sessions_in_range(start_date=today - timedelta(days=1), end_date=today + timedelta(days=1))
+            valid_days = [session.date() for session in sessions]
             if today not in valid_days:
                 date_str = today.strftime("%Y-%m-%d")
                 if not already_sent_holiday_message(date_str):
@@ -62,10 +63,12 @@ return sessions[-1].date()
                     mark_holiday_message_sent(date_str)
                 return
         except Exception as e:
-            send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בזיהוי יום מסחר תקין: {str(e)}", message_type="error")
+            if not error_logged:
+                send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בזיהוי יום מסחר תקין: {str(e)}", message_type="error")
+                error_logged = True
             return
 
-        # בדיקת האם מדובר ביום מסחר מקוצר או בתקופת פערי שעון
+        # קביעת שעת איתות
         half_day = is_half_day(nyse, today)
         is_dst_gap = (datetime(today.year, 3, 10) <= today <= datetime(today.year, 3, 29))
 
@@ -84,13 +87,15 @@ return sessions[-1].date()
             if now_time == signal_time:
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
-                best_signal = "איתות סופי לדוגמה..."  # כאן יבוא האלגוריתם החכם
+                best_signal = "איתות סופי לדוגמה..."  # כאן תגיע הלוגיקה שלך לבחירת המניה
                 send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal_main")
                 break
             time.sleep(30)
 
     except Exception as e:
-        send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט: {str(e)}", message_type="error")
+        if not error_logged:
+            send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט: {str(e)}", message_type="error")
+            error_logged = True
 
 if __name__ == "__main__":
     main()
