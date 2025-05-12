@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from utils import send_discord_message, already_sent_holiday_message, mark_holiday_message_sent, get_today_holiday_name
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, STOCK_LIST
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT, DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, STOCK_LIST, ALPHA_VANTAGE_API_KEY
 from macro import send_macro_summary
 
 load_dotenv()
