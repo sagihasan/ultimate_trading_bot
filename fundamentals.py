@@ -1,7 +1,6 @@
 import requests
 from config import ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
 
-
 def analyze_fundamentals(stock_list):
     results = {}
     for symbol in stock_list:
@@ -35,35 +34,36 @@ def analyze_fundamentals(stock_list):
 
 
 def fetch_company_overview(symbol):
-    url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
     try:
-        response = requests.get(url)
+        url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
+        response = requests.get(url, timeout=10)
         data = response.json()
-        if "Symbol" in data:
-            return data
-    except:
-        pass
-    return None
+        return data if "Symbol" in data else None
+    except Exception as e:
+        print(f"שגיאה ב־Alpha Vantage עבור {symbol}: {e}")
+        return None
 
 
 def fetch_news_sentiment(symbol):
-    url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}"
     try:
-        response = requests.get(url)
+        url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}"
+        response = requests.get(url, timeout=10)
         articles = response.json().get("articles", [])
         positive, negative = 0, 0
+
         for article in articles[:5]:
             title = article.get("title", "").lower()
-            if any(x in title for x in ["beats", "growth", "strong", "gain"]):
+            if any(word in title for word in ["beats", "growth", "strong", "gain"]):
                 positive += 1
-            if any(x in title for x in ["miss", "drop", "loss", "weak"]):
+            if any(word in title for word in ["miss", "drop", "loss", "weak"]):
                 negative += 1
+
         if positive > negative:
             return "חיובי"
         elif negative > positive:
             return "שלילי"
-        else:
-            return "ניטרלי"
-    except:
+        return "ניטרלי"
+    except Exception as e:
+        print(f"שגיאת סנטימנט עבור {symbol}: {e}")
         return "לא זמין"
 
