@@ -4,7 +4,6 @@ from reporting import generate_weekly_report, generate_monthly_report
 from trade_manager import manage_trades
 from utils import load_trade_data, load_open_trades
 
-
 def run_scheduler():
     while True:
         now = datetime.now()
@@ -17,7 +16,7 @@ def run_scheduler():
         returns = [t.get("cumulative_return", 0) for t in trades]
         open_trades = load_open_trades()
 
-        # דוח שבועי – שבת ב־12:00
+        # דוח שבועי – שבת ב־12:00 (יום 5 = שבת)
         if day == 5 and hour == 12 and minute == 0:
             generate_weekly_report(trades, returns)
 
@@ -25,12 +24,11 @@ def run_scheduler():
         if now.day == 1 and hour == 12 and minute == 0:
             generate_monthly_report(trades, returns)
 
-        # ניהול עסקאות – כל חצי שעה אם יש עסקאות פתוחות
+        # ניהול עסקאות – כל חצי שעה מ־10:00 עד 22:30 (רק אם יש עסקאות פתוחות)
         if hour in range(10, 23) and minute in [0, 30] and open_trades:
             manage_trades(open_trades)
 
-        time.sleep(60)  # כל דקה
-
+        time.sleep(60)
 
 if __name__ == "__main__":
     run_scheduler()
