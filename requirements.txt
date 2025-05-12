@@ -13,3 +13,4 @@ pandas_market_calendars
 alpha_vantage
 newsapi-python
 TA-Lib==0.4.0
+pandas_ta
