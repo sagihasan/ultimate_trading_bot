@@ -1,7 +1,12 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
-import talib
+try:
+    import talib
+    TALIB_AVAILABLE = True
+except ImportError:
+    import pandas_ta as ta
+    TALIB_AVAILABLE = False
 from config import STOCK_LIST
 
 
