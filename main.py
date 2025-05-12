@@ -49,7 +49,8 @@ def main():
 
         # בדיקה אם אין מסחר היום לפי לוח השנה של הבורסה
         try:
-            valid_days = nyse.valid_days(start_date=today - timedelta(days=1), end_date=today + timedelta(days=1))
+            sessions = nyse.sessions_in_range(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1))
+return sessions[-1].date()
             if today not in valid_days:
                 date_str = today.strftime("%Y-%m-%d")
                 if not already_sent_holiday_message(date_str):
