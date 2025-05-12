@@ -1,53 +1,38 @@
-# trade_manager.py – ניהול עסקאות חכם בזמן אמת
+from utils import send_discord_message, save_to_excel
+from config import DISCORD_PUBLIC_WEBHOOK
+from datetime import datetime
 
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, DISCORD_PUBLIC_WEBHOOK
-from utils import send_discord_message
+trade_management_log = []
 
-# ניהול עסקאות פתוחות לפי תנאי שוק בזמן אמת
 
-def manage_open_trades(fundamentals, technicals):
-    for stock in technicals:
-        symbol = stock["symbol"]
-        score = stock.get("score", 0)
-        candle = stock.get("candle_reversal")
-        reversal_zone = stock.get("reversal_zone")
-        pattern_flag = stock.get("pattern_flag_or_triangle")
-        trend = stock.get("trend_daily")
-        can_leverage = stock.get("can_leverage", False)
+def manage_trades(open_trades):
+    for trade in open_trades:
+        symbol = trade["symbol"]
+        current_price = trade["current_price"]
+        entry_price = trade["entry_price"]
+        stop_loss = trade["stop_loss"]
+        take_profit = trade["take_profit"]
 
-        fund = fundamentals.get(symbol, {})
-        outlook = fund.get("future_outlook")
-        sentiment = fund.get("news_sentiment")
-        cap = fund.get("market_cap", 0)
+        # דוגמה לניהול עסקה: עדכון סטופ לוס כשהרווח עובר 3%
+        if current_price >= entry_price * 1.03:
+            new_stop = round(entry_price * 1.01, 2)
+            message = (
+                f"ניהול עסקה ({symbol}):\n"
+                f"המחיר התקדם מעל 3%, הבוט מעדכן סטופ לוס ל-{new_stop}$\n"
+                f"טייק פרופיט נשאר על {take_profit}$"
+            )
+            send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="management")
+            log_trade_action(symbol, stop_loss, new_stop, take_profit, take_profit)
 
-        if score < 50 or outlook != "צמיחה עתידית חזקה" or sentiment != "חיובי" or cap < 2e9:
-            continue
 
-        # חישוב כמות לפי סיכון
-        price = stock["price"]
-        stop_loss = price * (1 - 0.03)
-        take_profit = price * (1 + 0.06)
-        risk_amount = ACCOUNT_SIZE * RISK_PERCENTAGE
-        qty = int(risk_amount / (price - stop_loss))
+def log_trade_action(symbol, old_stop, new_stop, old_take, new_take):
+    trade_management_log.append({
+        "symbol": symbol,
+        "old_stop_loss": old_stop,
+        "new_stop_loss": new_stop,
+        "old_take_profit": old_take,
+        "new_take_profit": new_take,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+    })
 
-        # הודעת איתות קרבית
-        message = (
-            f"איתות לכניסה – לונג\n"
-            f"סימול: {symbol}\n"
-            f"פקודת כניסה: Stop Limit\n"
-            f"מחיר כניסה מתוכנן: {round(price, 2)}\n"
-            f"סטופ לוס: {round(stop_loss, 2)}\n"
-            f"טייק פרופיט: {round(take_profit, 2)}\n"
-            f"כמות מניות: {qty}\n"
-            f"צפי עתידי: {fund.get('future_event_note', '')}\n"
-            f"מגמות: יומי: {stock['trend_daily']} | שבועי: {stock['trend_weekly']} | חודשי: {stock['trend_monthly']}\n"
-            + (f"נר היפוך מזוהה: {candle}\n" if candle else "")
-            + ("נמצאת באזור פסגות/תחתיות\n" if reversal_zone else "")
-            + ("נמצאת בתבנית דגל/משולש\n" if pattern_flag else "") +
-            f"מינוף: {'כן' if can_leverage else 'לא'}\n"
-            f"הבוט קובע: להיכנס לעסקה\n"
-            f"יחס סיכוי-סיכון: 1:2\n"
-            f"סיכון לעסקה: {round(risk_amount, 2)}$ ({int(RISK_PERCENTAGE * 100)}%)"
-        )
-
-        send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="signal_trade")
+    save_to_excel(trade_management_log, "trade_management_log.xlsx")
