@@ -1,19 +1,17 @@
-# run_all.py (קובץ ריצה משולב)
-
 import threading
 import time
 from main import main as run_main
 from scheduler import run_scheduler
 
 if __name__ == "__main__":
-    # שרשור ראשון – הפעלת הבוט היומי לאיתותים
+    # תהליך ראשון – הבוט היומי (איתותים)
     main_thread = threading.Thread(target=run_main)
     main_thread.start()
 
-    # שרשור שני – הפעלת ניהול עסקאות ודוחות
+    # תהליך שני – ניהול עסקאות ודוחות
     scheduler_thread = threading.Thread(target=run_scheduler)
     scheduler_thread.start()
 
-    # שמירה על ריצה רציפה
+    # שמירה על תהליכים רצים
     while True:
         time.sleep(60)
