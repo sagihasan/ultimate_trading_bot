@@ -1,7 +1,13 @@
 import pandas as pd
-from utils import save_to_excel, create_return_chart, create_pdf_report, calculate_tax, send_discord_message
-from config import DISCORD_PRIVATE_WEBHOOK
 from datetime import datetime
+from utils import (
+    save_to_excel,
+    create_return_chart,
+    create_pdf_report,
+    calculate_tax,
+    send_discord_message
+)
+from config import DISCORD_PRIVATE_WEBHOOK
 
 
 def generate_weekly_report(trades, returns):
@@ -15,7 +21,11 @@ def generate_weekly_report(trades, returns):
     create_pdf_report(summary_text, filename=pdf_path)
     save_to_excel(trades, filename=excel_path)
 
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, f"דו"ח שבועי מוכן לתאריכים: {date_range}", message_type="weekly_report")
+    send_discord_message(
+        DISCORD_PRIVATE_WEBHOOK,
+        f"דו\"ח שבועי מוכן לתאריכים: {date_range}",
+        message_type="weekly_report"
+    )
 
 
 def generate_monthly_report(trades, returns):
@@ -30,7 +40,11 @@ def generate_monthly_report(trades, returns):
     create_pdf_report(summary_text, filename=pdf_path)
     save_to_excel(trades, filename=excel_path)
 
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, f"דו"ח חודשי עבור {month_name} מוכן. ראה קבצים מצורפים.", message_type="monthly_report")
+    send_discord_message(
+        DISCORD_PRIVATE_WEBHOOK,
+        f"דו\"ח חודשי עבור {month_name} מוכן. ראה קבצים מצורפים.",
+        message_type="monthly_report"
+    )
 
 
 def get_week_range():
@@ -41,13 +55,13 @@ def get_week_range():
 
 
 def create_summary_text(trades, returns, date_range):
-    total_profit = sum([t.get("profit", 0) for t in trades])
+    total_profit = sum(t.get("profit", 0) for t in trades)
     tax_data = calculate_tax(total_profit)
     win_count = sum(1 for t in trades if t.get("profit", 0) > 0)
     loss_count = len(trades) - win_count
     win_rate = (win_count / len(trades)) * 100 if trades else 0
 
-    summary = f"דו"ח ({date_range})\n"
+    summary = f"דו\"ח ({date_range})\n"
     summary += f"סה\"כ עסקאות: {len(trades)} | הצלחות: {win_count} | כישלונות: {loss_count} | אחוז הצלחה: {win_rate:.1f}%\n"
     summary += f"רווח כולל: {tax_data['total_profit']}$ | מס: {tax_data['tax_due']}$ | רווח נטו: {tax_data['net_profit']}$\n"
     return summary
