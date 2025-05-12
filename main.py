@@ -25,7 +25,7 @@ def is_half_day(nyse_calendar, date):
 
 def get_current_market_day(nyse):
     now = datetime.now(pytz.timezone("America/New_York")).date()
-    return nyse.valid_days(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1)).date[-1]
+    return nyse.sessions_in_range(now - timedelta(days=1), now + timedelta(days=1))[-1].date()
 
 def is_dst_gap_period():
     today = datetime.now().date()
