@@ -1,7 +1,7 @@
 import yfinance as yf
 import pandas as pd
 import ta
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT
+from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENTAGE, TAKE_PROFIT_PERCENTAGE
 
 def run_technical_analysis(symbols):
     results = []
