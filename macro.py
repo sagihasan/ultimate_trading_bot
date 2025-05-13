@@ -7,7 +7,6 @@ from utils import send_discord_message
 from config import DISCORD_PUBLIC_WEBHOOK
 from collections import defaultdict
 from datetime import datetime
-from main import STOCK_LIST  # יבוא מרשימת המניות הראשית
 
 # 12:00 ב־ראשון בכל שבוע הודעת סיכום מאקרו
 def send_macro_summary():
