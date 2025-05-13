@@ -38,5 +38,5 @@ def send_macro_summary():
         "בהצלחה לשבוע הקרוב!"
     )
 
-    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="macro")
+    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message)
 
