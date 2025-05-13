@@ -1,4 +1,3 @@
-
 import os
 import time
 from datetime import datetime, timedelta
@@ -12,11 +11,18 @@ from technicals import run_technical_analysis
 from config import (
     ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENTAGE, TAKE_PROFIT_PERCENTAGE,
     DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK,
-    ALPHA_VANTAGE_API_KEY, NEWS_API_KEY, STOCK_LIST
+    ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
 )
 from macro import send_macro_summary
 
 load_dotenv()
+
+STOCK_LIST = [
+    "PLTR", "AMZN", "NVDA", "AAPL", "TSLA", "ANET", "SNEX", "CRGY", "MSFT", "GOOG",
+    "AMD", "ADBE", "META", "AI", "AR", "ALSN", "ASGN", "HIMS", "ASTS", "HOOD",
+    "DKNG", "SOUN", "APP", "PZZA", "AVGO", "SMCI", "ADI", "SEDG", "ARKK", "PERI",
+    "NU", "ACHC", "SMMT", "ZIM", "GRPN", "RKT", "EBAY", "CVNA", "XBI", "PANW", "NFLX"
+]
 
 def is_half_day(nyse_calendar, date):
     try:
@@ -24,7 +30,7 @@ def is_half_day(nyse_calendar, date):
         if not schedule.empty:
             open_time = schedule.iloc[0]['market_open']
             close_time = schedule.iloc[0]['market_close']
-            return (close_time - open_time).total_seconds() < 6.5 * 3600
+            return (close_time - open_time).seconds < 23400  # פחות מ-6.5 שעות
     except Exception as e:
         print(f"שגיאה בזיהוי חצי יום מסחר: {e}")
     return False
@@ -48,28 +54,24 @@ def main():
         today = datetime.now(pytz.timezone("Asia/Jerusalem"))
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
 
+        # יום שבת: שליחת סיכום בלבד
         if today.weekday() == 6 and now.strftime("%H:%M") == "12:00":
-            send_discord_message(DISCORD_PUBLIC_WEBHOOK, "סיכום מאקרו שבועי")
+            send_discord_message(DISCORD_PUBLIC_WEBHOOK, "אין מסחר היום.")
             send_macro_summary()
 
-        try:
-            sessions = nyse.sessions_in_range(today.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d"))
-            if sessions.empty:
-                date_str = today.strftime("%Y-%m-%d")
-                if not already_sent_holiday_message(date_str):
-                    holiday_name = get_today_holiday_name()
-                    message = "אין מסחר היום"
-                    if holiday_name:
-                        message += f" (חג: {holiday_name})"
-                    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message)
-                    mark_holiday_message_sent(date_str)
-                return
-        except Exception as e:
-            send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבדיקת יום מסחר: {e}")
+        # בדיקת חגים
+        sessions = nyse.sessions_in_range(today.date(), today.date())
+        if sessions.empty:
+            date_str = today.strftime("%Y-%m-%d")
+            if not already_sent_holiday_message(date_str):
+                holiday_name = get_today_holiday_name()
+                message = f"אין מסחר היום: {holiday_name}"
+                send_discord_message(DISCORD_PUBLIC_WEBHOOK, message)
+                mark_holiday_message_sent(date_str)
             return
 
-        half_day = is_half_day(nyse, today)
-        is_dst_gap = (datetime(today.year, 3, 8).weekday() == 6)
+        half_day = is_half_day(nyse, today.date())
+        is_dst_gap = (datetime(today.year, 3, 8) <= today <= datetime(today.year, 11, 1))
 
         if half_day:
             close_time = datetime.combine(today.date(), datetime.strptime("13:00", "%H:%M").time())
@@ -85,7 +87,8 @@ def main():
             now_time = datetime.now(pytz.timezone("Asia/Jerusalem")).strftime("%H:%M")
             if now_time >= signal_time:
                 fundamentals = analyze_fundamentals()
-                technicals = run_technical_analysis()
+                technicals = run_technical_analysis(STOCK_LIST)
+
                 best_stock = None
                 highest_score = 0
 
@@ -119,35 +122,25 @@ def main():
                     zone_note = f"\nאזור: {best_stock['zone']}"
                     trend_note = f"מגמה: {best_stock['trend']}"
                     if best_stock["trend"] == "מגמת עלייה":
-                        decision = "**כניסה לעסקת לונג**"
+                        decision = "**להיכנס לעסקת לונג**"
                     elif best_stock["trend"] == "מגמת ירידה":
-                        decision = "**כניסה לעסקת שורט**"
+                        decision = "**להיכנס לעסקת שורט**"
                     else:
-                        decision = "**אין מגמה ברורה – להימנע**"
+                        decision = "**אין מגמה ברורה – סיכון מוגבר**"
 
                     best_signal = (
-                        f"**איתות סופי — {best_stock['symbol']}**"
-"
-                        f"סקטור: {best_stock['sector']}
-"
-                        f"{trend_note}
-"
-                        f"מחיר כניסה: {best_stock['price']}
-"
-                        f"סטופ לוס: {best_stock['stop_loss']}
-"
-                        f"טייק פרופיט: {best_stock['take_profit']}
-"
-                        f"גודל פוזיציה מומלץ: {best_stock['position_size']}
-"
-                        f"ציון פונדמנטלי: {best_stock['score']}
-"
-                        f"חיזוק טכני כולל: {best_stock['score']}
-"
+                        f"**איתות סופי** — {best_stock['symbol']}\n"
+                        f"סקטור: {best_stock['sector']}\n"
+                        f"{trend_note}\n"
+                        f"מחיר כניסה: {best_stock['price']}\n"
+                        f"סטופ לוס: {best_stock['stop_loss']}\n"
+                        f"טייק פרופיט: {best_stock['take_profit']}\n"
+                        f"גודל פוזיציה מומלץ: {best_stock['position_size']}\n"
+                        f"חוזק טכני כולל: {best_stock['score']}\n"
                         f"{decision}"
                     )
                 else:
-                    best_signal = "הבוט לא מצא מניה מתאימה היום"
+                    best_signal = "הבוט רץ — לא נמצאה מניה מתאימה היום"
 
                 send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal)
                 break
@@ -155,7 +148,7 @@ def main():
             time.sleep(30)
 
     except Exception as e:
-        send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בהרצת הבוט: {e}")
+        send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבוט הראשי: {e}")
 
 if __name__ == "__main__":
     main()
