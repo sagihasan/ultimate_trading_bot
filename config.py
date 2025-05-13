@@ -1,6 +1,6 @@
 import os
 
-ACCOUNT_SIZE = float(os.getenv("ACCOUNT_SIZE", 1000))
+ACCOUNT_SIZE = float(os.getenv("ACCOUNT_SIZE", 951))
 RISK_PERCENTAGE = float(os.getenv("RISK_PERCENTAGE", 0.02))
 STOP_LOSS_PERCENTAGE = float(os.getenv("STOP_LOSS_PERCENTAGE", 0.03))
 TAKE_PROFIT_PERCENTAGE = float(os.getenv("TAKE_PROFIT_PERCENTAGE", 0.06))
