@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from utils import send_discord_message, already_sent_holiday_message, mark_holiday_message_sent
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
+from stock_list import STOCK_LIST
 from config import (
     ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENTAGE, TAKE_PROFIT_PERCENTAGE,
     DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK,
