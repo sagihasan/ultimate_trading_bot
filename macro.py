@@ -2,7 +2,7 @@
 
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from config import STOCK_LIST, DISCORD_PUBLIC_WEBHOOK
+from config import DISCORD_PUBLIC_WEBHOOK
 from utils import send_discord_message
 from collections import defaultdict
 from datetime import datetime
