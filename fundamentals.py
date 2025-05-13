@@ -1,4 +1,5 @@
 import requests
+from stock_list import STOCK_LIST
 from config import ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
 
 def analyze_fundamentals(stock_list):
