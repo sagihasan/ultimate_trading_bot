@@ -126,7 +126,7 @@ def main():
                         decision = "**אין מגמה ברורה – להימנע**"
 
                     best_signal = (
-                        f"**איתות סופי** — {best_stock['symbol']}
+                        f"**איתות סופי — {best_stock['symbol']}**"
 "
                         f"סקטור: {best_stock['sector']}
 "
