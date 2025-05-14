@@ -1,38 +1,35 @@
 import requests
-import json
-from config import DISCORD_PUBLIC_WEBHOOK, DISCORD_PRIVATE_WEBHOOK, DISCORD_ERROR_WEBHOOK
+import datetime
+import os
 
-def send_discord_message(webhook_url, content):
+# שליחת הודעה לדיסקורד
+def send_discord_message(webhook_url, message):
     try:
-        data = {"content": content}
-        response = requests.post(webhook_url, data=json.dumps(data), headers={"Content-Type": "application/json"})
-        if response.status_code != 204:
-            print(f"שגיאה בשליחת הודעה לדיסקורד: {response.status_code} - {response.text}")
+        data = {"content": message}
+        requests.post(webhook_url, json=data)
     except Exception as e:
-        print(f"שגיאה כללית בשליחת הודעה: {str(e)}")
+        print(f"שגיאה בשליחת הודעת דיסקורד: {e}")
 
-def send_public_log(message):
-    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message)
+# זיהוי אם כבר נשלחה הודעת חג
+def already_sent_holiday_message(date_str):
+    try:
+        with open("sent_holiday_log.txt", "r") as f:
+            return date_str in f.read()
+    except FileNotFoundError:
+        return False
 
-def send_private_log(message):
-    send_discord_message(DISCORD_PRIVATE_WEBHOOK, message)
+# סימון הודעת חג כשלוחה
+def mark_holiday_message_sent(date_str):
+    with open("sent_holiday_log.txt", "a") as f:
+        f.write(date_str + "\n")
 
-def send_error_log(message):
-    send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה:\n{message}")
+# בדיקת אם היום יום חג לפי לוח NYSE
+def is_holiday(date_obj):
+    nyse_holidays = [
+        "2025-01-01", "2025-01-20", "2025-02-17", "2025-04-18", "2025-05-26",
+        "2025-07-04", "2025-09-01", "2025-11-27", "2025-12-25"
+    ]
+    return date_obj.strftime("%Y-%m-%d") in nyse_holidays
 
-def get_upcoming_events():
-    """
-    מחזירה רשימה של אירועים כלכליים קרובים בפורמט:
-    [{"title": "CPI", "time": datetime_object, "impact": "High"}, ...]
-    כרגע הפונקציה מחזירה רשימת דוגמה לצורכי בדיקה
-    """
-    from datetime import datetime, timedelta
-
-    now = datetime.now()
-    example_event = {
-        "title": "נאום הפד",
-        "time": now.replace(hour=17, minute=0, second=0, microsecond=0),
-        "impact": "High"
-    }
-    return [example_event]
+# ניתן להוסיף כאן פונקציות נוספות שקשורות להודעות מערכת
 
