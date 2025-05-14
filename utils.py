@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from config import DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL, DISCORD_ERROR_WEBHOOK_URL
 import requests
+from stock_list import STOCKS
 
 def get_stock_list():
     from stock_list import STOCKS
