@@ -1,48 +1,46 @@
 
 import os
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
+from config import DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL, DISCORD_ERROR_WEBHOOK_URL
 import requests
-from config import DISCORD_ERROR_WEBHOOK
 
+# שליחת הודעה לדיסקורד
 def send_discord_message(webhook_url, message):
     try:
         data = {"content": message}
-        response = requests.post(webhook_url, json=data)
-        response.raise_for_status()
+        requests.post(webhook_url, json=data)
     except Exception as e:
         print(f"שגיאה בשליחת הודעה לדיסקורד: {e}")
 
+# אירועי היום (ללוח שנה כלכלי)
 def get_today_events():
-    path = "data/events/today_events.json"
-    if not os.path.exists(path):
-        return []
-    with open(path, "r") as file:
-        try:
-            return json.load(file)
-        except json.JSONDecodeError:
-            return []
-
-def get_upcoming_events():
-    path = "data/events/upcoming_events.json"
-    if not os.path.exists(path):
-        return []
-    with open(path, "r") as file:
-        try:
-            return json.load(file)
-        except json.JSONDecodeError:
-            return []
-
-def already_sent_log(file_name, message_id):
-    if not os.path.exists(file_name):
+    today = datetime.now().strftime("%Y-%m-%d")
+    try:
+        with open("data/events.json", "r") as f:
+            events = f.read()
+            return today in events
+    except:
         return False
-    with open(file_name, "r") as f:
-        return message_id in f.read()
 
-def mark_log_as_sent(file_name, message_id):
-    with open(file_name, "a") as f:
-        f.write(f"{message_id}\n")
+# אירועים קרובים
+def get_upcoming_events():
+    try:
+        with open("data/upcoming_events.json", "r") as f:
+            events = f.read()
+            return events
+    except:
+        return ""
 
+# בדיקה אם כבר נשלחה הודעה על חג
 def already_sent_holiday_message():
-    return False  # future implementation
+    return os.path.exists("sent_holiday_log.txt")
+
+# סימון שנשלחה הודעה על חג
+def mark_holiday_message_sent():
+    with open("sent_holiday_log.txt", "w") as f:
+        f.write("sent")
+
+# שליחת שגיאה לדיסקורד
+def send_error_to_discord(error_message):
+    send_discord_message(DISCORD_ERROR_WEBHOOK_URL, f"שגיאת מערכת:\n```{error_message}```")
 
