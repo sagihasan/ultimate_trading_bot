@@ -4,7 +4,7 @@ from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
 from stock_list import STOCK_LIST
 from utils import send_discord_message
-from config import DISCORD_PUBLIC_WEBHOOK
+from config import DISCORD_PUBLIC_WEBHOOK_URL
 from collections import defaultdict
 from datetime import datetime
 
