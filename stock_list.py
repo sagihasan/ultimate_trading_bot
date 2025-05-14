@@ -1,7 +1,7 @@
 # stock_list.py
 # רשימת המניות לסריקה יומית
 
-STOCK_LIST = [
+STOCKS = [
  "AAPL", "MSFT", "NVDA", "GOOG", "AMZN", "META", "TSLA", "AMD", "ADBE", "AVGO",
     "NFLX", "INTC", "CRM", "ORCL", "QCOM", "CSCO", "SHOP", "SNOW", "PLTR", "UBER",
     "BABA", "TCEHY", "LRCX", "ASML", "MU", "TXN", "PANW", "SMCI", "SEDG", "ENPH",
