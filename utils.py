@@ -4,6 +4,10 @@ from datetime import datetime
 from config import DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL, DISCORD_ERROR_WEBHOOK_URL
 import requests
 
+def get_stock_list():
+    from stock_list import STOCKS
+    return STOCKS
+
 # שליחת הודעה לדיסקורד
 def send_discord_message(webhook_url, message):
     try:
