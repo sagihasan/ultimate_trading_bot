@@ -2,6 +2,7 @@
 
 from main import main
 from scheduler import run_scheduler
+from utils import get_today_events
 from changelog_manager import send_latest_changelog
 import threading
 
