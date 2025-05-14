@@ -1,20 +1,19 @@
-import threading
 from main import main
 from scheduler import run_scheduler
+from changelog_manager import send_latest_changelog
+import threading
 import time
 
 if __name__ == "__main__":
-    try:
-        # הפעלת ניהול עסקאות ודוחות ברקע
-        scheduler_thread = threading.Thread(target=run_scheduler)
-        scheduler_thread.start()
+    # שליחת גרסת עדכון אחרונה לערוץ הפרטי (אם טרם נשלחה)
+    send_latest_changelog()
 
-        # הרצת הבוט הראשי של האיתותים
-        main()
+    # הפעלת ניהול עסקאות ודוחות ברקע
+    scheduler_thread = threading.Thread(target=run_scheduler)
+    scheduler_thread.start()
 
-        # המתנה בלולאה כדי שהבוט יישאר פעיל בענן
-        while True:
-            time.sleep(60)
+    # הרצת הבוט הראשי של האיתותים
+    main()
 
-    except Exception as e:
-        print(f"שגיאה בהרצת run_all.py: {e}")
+    # המתנה לסיום של הסקדולר (לא חובה – אפשר גם להשאיר פתוח)
+    scheduler_thread.join()
