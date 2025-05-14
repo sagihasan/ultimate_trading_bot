@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
 from dotenv import load_dotenv
-from utils import get_today_events
+from utils import get_today_events, mark_holiday_message_sent, already_sent_holiday_message
 from utils import (
     send_discord_message,
     already_sent_holiday_message,
