@@ -1,67 +1,120 @@
 import os
 import time
-import pytz
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-from utils import send_discord_message, get_today_events, get_upcoming_events, log_event
-from fundamentals import analyze_fundamentals
-from technicals import run_technical_analysis
-from stock_list import STOCK_LIST
-from config import (
-    DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_ERROR_WEBHOOK_URL,
-    DISCORD_PRIVATE_WEBHOOK_URL, ACCOUNT_SIZE, RISK_PERCENTAGE,
-    STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT
-)
+from datetime import datetime
+from config import *
+from discord_manager import send_discord_message, send_error_message
+from fundamentals import get_fundamentals
+from technicals import analyze_technicals
+from macro_analyzer import analyze_macro_conditions
+from risk_management import calculate_stop_loss, calculate_take_profit
+from trade_manager import load_open_trades, save_trade, close_trade
+from trade_management import manage_open_trades
+from log_manager import log_error
+from zones import check_zones
+from screener import get_stock_list
 
-load_dotenv()
+def is_market_open():
+    now = datetime.now()
+    return now.weekday() < 5 and MARKET_OPEN_HOUR <= now.hour < MARKET_CLOSE_HOUR
 
-def is_dst_gap_period(date):
-    return date.month == 3 and 10 <= date.day <= 29
-
-def is_half_day():
-    return False  # Placeholder. Add logic if needed.
-
-def is_market_day():
-    return datetime.now(pytz.timezone("America/New_York")).weekday() < 5
-
-def send_startup_logs():
-    now = datetime.now(pytz.timezone("Asia/Jerusalem"))
-    if now.strftime("%H:%M") == "11:00":
-        print("הבוט התחיל לפעול. מחכה לשעה 22:40")
-        send_discord_message(DISCORD_PRIVATE_WEBHOOK_URL, "הבוט התחיל לפעול. מחכה לשעה 22:40")
-    elif now.strftime("%H:%M") == "11:10":
-        print("הבוט בודק עכשיו את הפרי מארקט")
-    elif now.strftime("%H:%M") in ["15:30", "16:30"]:
-        print("הבוט סיים לבדוק את הפרי מארקט והתחיל את המסחר. שליחת איתות תהיה בהתאם לשעה שהוגדרה")
-    elif now.strftime("%H:%M") in ["19:40", "21:40", "22:40"]:
-        print("הבוט שולח איתות. תבדוק את הערוץ הציבורי")
-    elif now.strftime("%H:%M") == "23:10":
-        print("הבוט סיים את המסחר ומתחיל את האפטר מארקט")
-    elif now.strftime("%H:%M") == "02:00":
-        print("הבוט סיים לפעול. שלח עדכון יומי לערוץ הפרטי")
-
-
-def run_bot():
+def analyze_stock(symbol):
     try:
-        now = datetime.now(pytz.timezone("Asia/Jerusalem"))
-        send_startup_logs()
+        fundamentals = get_fundamentals(symbol)
+        if not fundamentals:
+            return None
 
-        # אירועים כלכליים
-        if now.minute == 0:
-            log_event("הבוט מחפש אירועים כלכליים")
-            upcoming = get_upcoming_events()
-            if upcoming:
-                for event in upcoming:
-                    if event['time'] == (now + timedelta(hours=1)).strftime("%H:%M"):
-                        send_discord_message(DISCORD_PUBLIC_WEBHOOK_URL, f"הבוט מצא אירוע כלכלי בשעה {event['time']}. תבדוק את הערוץ הציבורי")
-                    if event['time'] == (now - timedelta(minutes=15)).strftime("%H:%M"):
-                        send_discord_message(DISCORD_PUBLIC_WEBHOOK_URL, f"האירוע הכלכלי הסתיים. הבוט שלח סיכום לערוץ הציבורי")
+        technicals = analyze_technicals(symbol)
+        macro = analyze_macro_conditions()
+        zones_info = check_zones(symbol)
 
-        if now.strftime("%H:%M") in ["19:40", "21:40", "22:40"]:
-            fundamentals = analyze_fundamentals(STOCK_LIST)
-            technicals = run_technical_analysis(STOCK_LIST)
-            best_signal = "איתות סופי לדוגמה – עם כל הפרטים"  # Placeholder
-            send_discord_message(DISCORD_PUBLIC_WEBHOOK_URL, best_signal)
+        all_conditions = {
+            "fundamentals": fundamentals,
+            "technicals": technicals,
+            "macro": macro,
+            "zones": zones_info
+        }
 
+        # תנאי חובה: פונדומנטלי + 4 תנאים טכניים
+        mandatory = fundamentals["growth_type"] != "צניחה" and fundamentals["market_cap"] > 1_000_000_000
+        tech_conditions = sum([
+            technicals.get("ma_crossover", False),
+            technicals.get("rsi_ok", False),
+            technicals.get("macd_ok", False),
+            technicals.get("volume_ok", False),
+            technicals.get("price_action_ok", False),
+            zones_info.get("in_demand_zone", False)
+        ])
+
+        if mandatory and tech_conditions >= 4:
+            return {
+                "symbol": symbol,
+                "entry_price": technicals.get("entry_price"),
+                "stop_loss": calculate_stop_loss(technicals.get("entry_price"), "long"),
+                "take_profit": calculate_take_profit(technicals.get("entry_price"), "long"),
+                "direction": "long",
+                "fundamentals": fundamentals,
+                "macro": macro,
+                "zones": zones_info
+            }
+        return None
     except Exception as e:
-        send_discord_message(DISCORD_ERROR_WEBHOOK_URL, f"שגיאה בבוט: {str(e)}")
+        log_error(f"שגיאה בניתוח מניה {symbol}: {e}")
+        return None
+def create_signal_message(data):
+    f = data["fundamentals"]
+    m = data["macro"]
+    z = data["zones"]
+    symbol = data["symbol"]
+    entry = round(data["entry_price"], 2)
+    sl = round(data["stop_loss"], 2)
+    tp = round(data["take_profit"], 2)
+    sentiment = f["sentiment"]
+    growth = f["growth_type"]
+    macro_note = m["note"]
+    zone_status = "Yes" if z.get("in_demand_zone") else "No"
+
+    # תוכל לשנות ידנית או לדחוף לדינמיקה בהמשך
+    order_type = "Stop Limit"  # אפשר: Market, Limit, Stop, Stop Limit
+
+    # ניסוח פקודה לפי סוג
+    if order_type.lower() == "market":
+        price_line = f"פקודת כניסה: **Market** – כניסה מיידית לפי המחיר הזמין בשוק."
+    elif order_type.lower() in ["limit", "stop", "stop limit"]:
+        price_line = f"פקודת כניסה: **{order_type}** במחיר: {entry}"
+    else:
+        price_line = f"פקודת כניסה: **{order_type}**"
+
+    message = f"""**איתות קרבי – {symbol}**
+{price_line}
+סטופ לוס: {sl}
+טייק פרופיט: {tp}
+מחיר נוכחי: {entry}
+סנטימנט: {sentiment}
+צמיחה: {growth}
+מאקרו: {macro_note}
+אזור אסטרטגי: {zone_status}
+
+**הוראה: להיכנס לעסקה. אין פשרות. הביצוע עכשיו.**
+"""
+    return message
+    def run_trade_management():
+    try:
+        manage_open_trades()
+    except Exception as e:
+        log_error(f"שגיאה בניהול עסקאות פתוחות: {e}")
+
+def fallback_signal_if_needed():
+    try:
+        now = datetime.now()
+        if now.hour == 22 and now.minute >= 40:
+            open_trades = load_open_trades()
+            if not open_trades:
+                send_discord_message("22:40 – לא נשלח איתות היום. הסיבה: אף מניה לא עמדה בכל התנאים הקרביים.")
+    except Exception as e:
+        log_error(f"שגיאה ב־fallback_signal_if_needed: {e}")
+
+if __name__ == "__main__":
+    print("הבוט התחיל לעבוד.")
+    run_bot()
+    run_trade_management()
+    fallback_signal_if_needed()
