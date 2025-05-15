@@ -6,7 +6,7 @@ def analyze_fundamentals(stock_list):
     for symbol in stock_list:
         try:
             overview = fetch_company_overview(symbol)
-            sentiment = fetch_news_sentiment(symbol)
+            news_sentiment = fetch_news_sentiment(symbol)
 
             if not overview:
                 continue
@@ -16,7 +16,11 @@ def analyze_fundamentals(stock_list):
             net_income = float(overview.get("NetIncomeTTM", 0))
             sector = overview.get("Sector", "Unknown")
 
-            trend = "צמיחה" if net_income > 0 and revenue > 0 else "צניחה" if net_income < 0 else "ניטרלי"
+            trend = (
+                "צמיחה" if net_income > 0 and revenue > 0 else
+                "צניחה" if net_income < 0 else
+                "ניטרלי"
+            )
 
             results[symbol] = {
                 "market_cap": market_cap,
@@ -24,12 +28,14 @@ def analyze_fundamentals(stock_list):
                 "net_income": net_income,
                 "sector": sector,
                 "trend": trend,
-                "sentiment": sentiment
+                "sentiment": news_sentiment,
             }
 
         except Exception as e:
-            print(f"שגיאה בניתוח פונדומנטלי של {symbol}: {e}")
+            print(f"שגיאה בניתוח {symbol}: {e}")
+
     return results
+
 
 def fetch_company_overview(symbol):
     url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
@@ -42,18 +48,25 @@ def fetch_company_overview(symbol):
         pass
     return None
 
+
 def fetch_news_sentiment(symbol):
     url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}"
     try:
         response = requests.get(url)
         articles = response.json().get("articles", [])
-        positive = sum(1 for a in articles[:5] if any(word in a.get("title", "").lower() for word in ["growth", "beats", "strong"]))
-        negative = sum(1 for a in articles[:5] if any(word in a.get("title", "").lower() for word in ["miss", "loss", "drop"]))
+        positive, negative = 0, 0
+        for article in articles[:5]:
+            title = article.get("title", "").lower()
+            if any(x in title for x in ["beats", "growth", "strong", "gain"]):
+                positive += 1
+            if any(x in title for x in ["miss", "drop", "loss", "weak"]):
+                negative += 1
         if positive > negative:
             return "חיובי"
         elif negative > positive:
             return "שלילי"
-        return "ניטרלי"
+        else:
+            return "ניטרלי"
     except:
         return "לא זמין"
 
