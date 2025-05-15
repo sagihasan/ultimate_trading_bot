@@ -13,3 +13,6 @@ pandas_market_calendars
 alpha_vantage
 newsapi-python
 pandas_ta
+scikit-learn
+joblib
+pandas
