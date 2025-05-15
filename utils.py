@@ -1,4 +1,4 @@
-
+# utils.py – כלים כלליים לשליחת הודעות, גרפים, דוחות ועוד
 import os
 import requests
 import pandas as pd
@@ -7,28 +7,29 @@ from fpdf import FPDF
 from datetime import datetime
 import time
 import json
-from config import DISCORD_ERROR_WEBHOOK
 
+HOLIDAY_LOG_FILE = "sent_holidays.json"
+ERROR_LOG_FILE = "sent_errors.json"
 last_sent_times = {}
-HOLIDAY_LOG_FILE = "sent_holiday_log.txt"
 
-# שליחת הודעה לדיסקורד עם בקרת תדירות
+# שליחת הודעה לדיסקורד עם מניעת הצפה
 def send_discord_message(webhook_url, message, message_type="default"):
     try:
         key = f"{webhook_url}_{message_type}"
         now = time.time()
-
         if key in last_sent_times and now - last_sent_times[key] < 15:
+            print(f"הודעת {message_type} נמנעה (rate limit)")
             return
 
         data = {"content": message}
         response = requests.post(webhook_url, json=data)
         response.raise_for_status()
         last_sent_times[key] = now
+
     except Exception as e:
         print(f"שגיאה בשליחה לדיסקורד: {e}")
 
-# בדיקת הודעת חג
+# בדיקה אם כבר נשלחה הודעת חג בתאריך מסוים
 def already_sent_holiday_message(date_str):
     if not os.path.exists(HOLIDAY_LOG_FILE):
         return False
@@ -46,28 +47,63 @@ def mark_holiday_message_sent(date_str):
     with open(HOLIDAY_LOG_FILE, "w") as f:
         json.dump(sent, f)
 
-# שמירה לאקסל
+# בדיקה אם כבר נשלחה שגיאה מסוג מסוים
+def already_sent_error_message(error_key):
+    if not os.path.exists(ERROR_LOG_FILE):
+        return False
+    with open(ERROR_LOG_FILE, "r") as f:
+        sent = json.load(f)
+    return sent.get(error_key, False)
+
+def mark_error_message_sent(error_key):
+    if os.path.exists(ERROR_LOG_FILE):
+        with open(ERROR_LOG_FILE, "r") as f:
+            sent = json.load(f)
+    else:
+        sent = {}
+    sent[error_key] = True
+    with open(ERROR_LOG_FILE, "w") as f:
+        json.dump(sent, f)
+
+def safe_get(d, *keys):
+    for key in keys:
+        if isinstance(d, dict) and key in d:
+            d = d[key]
+        else:
+            return None
+    return d
+
 def save_to_excel(data, filename):
     df = pd.DataFrame(data)
     df.to_excel(filename, index=False)
 
-# טעינת עסקאות
-def load_trade_data():
-    if os.path.exists("signals_log.xlsx"):
-        return pd.read_excel("signals_log.xlsx").to_dict(orient="records")
-    return []
+def create_return_chart(returns, filename="cumulative_return.png"):
+    plt.figure(figsize=(10, 5))
+    plt.plot(returns, marker='o')
+    plt.title("גרף תשואה מצטברת")
+    plt.xlabel("תאריך")
+    plt.ylabel("תשואה מצטברת (%)")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
 
-def load_open_trades():
-    if os.path.exists("open_trades.xlsx"):
-        return pd.read_excel("open_trades.xlsx").to_dict(orient="records")
-    return []
+def create_pdf_report(summary_text, filename="report.pdf"):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    for line in summary_text.split("\n"):
+        pdf.cell(200, 10, txt=line, ln=True, align='L')
+    pdf.output(filename)
 
-# זיהוי אירועים כלכליים (פיקטיבי לדוגמה – אפשר לחבר ל־Investing בעתיד)
-def get_today_events():
-    sample_events = [
-        {"time": "17:00", "description": "נאום פאוול"},
-        {"time": "15:30", "description": "נתוני CPI"}
-    ]
-    now = datetime.now().strftime("%H:%M")
-    return [e for e in sample_events if e["time"] >= now]
+def calculate_tax(total_profit, tax_rate=0.25, tax_shield=0):
+    tax_due = max((total_profit * tax_rate) - tax_shield, 0)
+    net_profit = total_profit - tax_due
+    return {
+        "total_profit": total_profit,
+        "tax_rate": tax_rate,
+        "tax_shield": tax_shield,
+        "tax_due": tax_due,
+        "net_profit": net_profit
+    }
 
