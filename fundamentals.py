@@ -1,5 +1,4 @@
 import requests
-from stock_list import STOCK_LIST
 from config import ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
 
 def analyze_fundamentals(stock_list):
@@ -7,7 +6,7 @@ def analyze_fundamentals(stock_list):
     for symbol in stock_list:
         try:
             overview = fetch_company_overview(symbol)
-            news_sentiment = fetch_news_sentiment(symbol)
+            sentiment = fetch_news_sentiment(symbol)
 
             if not overview:
                 continue
@@ -25,46 +24,36 @@ def analyze_fundamentals(stock_list):
                 "net_income": net_income,
                 "sector": sector,
                 "trend": trend,
-                "sentiment": news_sentiment,
+                "sentiment": sentiment
             }
 
         except Exception as e:
-            print(f"שגיאה בניתוח {symbol}: {e}")
-
+            print(f"שגיאה בניתוח פונדומנטלי של {symbol}: {e}")
     return results
 
-
 def fetch_company_overview(symbol):
+    url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
     try:
-        url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url)
         data = response.json()
-        return data if "Symbol" in data else None
-    except Exception as e:
-        print(f"שגיאה ב־Alpha Vantage עבור {symbol}: {e}")
-        return None
-
+        if "Symbol" in data:
+            return data
+    except:
+        pass
+    return None
 
 def fetch_news_sentiment(symbol):
+    url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}"
     try:
-        url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url)
         articles = response.json().get("articles", [])
-        positive, negative = 0, 0
-
-        for article in articles[:5]:
-            title = article.get("title", "").lower()
-            if any(word in title for word in ["beats", "growth", "strong", "gain"]):
-                positive += 1
-            if any(word in title for word in ["miss", "drop", "loss", "weak"]):
-                negative += 1
-
+        positive = sum(1 for a in articles[:5] if any(word in a.get("title", "").lower() for word in ["growth", "beats", "strong"]))
+        negative = sum(1 for a in articles[:5] if any(word in a.get("title", "").lower() for word in ["miss", "loss", "drop"]))
         if positive > negative:
             return "חיובי"
         elif negative > positive:
             return "שלילי"
         return "ניטרלי"
-    except Exception as e:
-        print(f"שגיאת סנטימנט עבור {symbol}: {e}")
+    except:
         return "לא זמין"
 
