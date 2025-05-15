@@ -1,71 +1,68 @@
 import requests
-from config import ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
-from utils import log_error
+import os
 
-def analyze_fundamentals(stock_list):
-    results = {}
-    for symbol in stock_list:
-        try:
-            overview = fetch_company_overview(symbol)
-            news_sentiment = fetch_news_sentiment(symbol)
+ALPHA_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-            if not overview:
-                continue
-
-            market_cap = float(overview.get("MarketCapitalization", 0))
-            revenue = float(overview.get("RevenueTTM", 0))
-            net_income = float(overview.get("NetIncomeTTM", 0))
-            sector = overview.get("Sector", "Unknown")
-
-            trend = "צמיחה" if net_income > 0 and revenue > 0 else "צניחה" if net_income < 0 else "ניטרלי"
-
-            results[symbol] = {
-                "market_cap": market_cap,
-                "revenue": revenue,
-                "net_income": net_income,
-                "sector": sector,
-                "trend": trend,
-                "sentiment": news_sentiment,
-            }
-
-        except Exception as e:
-            log_error(f"שגיאה בניתוח פונדומנטלי של {symbol}: {str(e)}")
-            continue
-
-    return results
-
-
-def fetch_company_overview(symbol):
-    url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}"
+def get_fundamentals(symbol):
+    fundamentals = {}
     try:
-        response = requests.get(url, timeout=10)
+        # שליפה מ-Alpha Vantage
+        url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_API_KEY}"
+        response = requests.get(url)
         data = response.json()
-        if "Symbol" in data:
-            return data
+
+        market_cap = float(data.get("MarketCapitalization", 0))
+        revenue = float(data.get("RevenueTTM", 0))
+        net_income = float(data.get("NetIncomeTTM", 0))
+        eps = float(data.get("EPS", 0))
+
+        growth_type = "נייטרלית"
+        if revenue > 0 and net_income > 0 and eps > 0:
+            growth_type = "צמיחה"
+        elif revenue < 0 or net_income < 0:
+            growth_type = "צניחה"
+
+        fundamentals = {
+            "market_cap": market_cap,
+            "revenue": revenue,
+            "net_income": net_income,
+            "eps": eps,
+            "growth_type": growth_type
+        }
+
     except Exception as e:
-        log_error(f"שגיאה בקבלת overview עבור {symbol}: {str(e)}")
-    return None
+        print(f"שגיאה בשליפת נתונים פונדומנטליים: {e}")
 
-
-def fetch_news_sentiment(symbol):
-    url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey={NEWS_API_KEY}"
     try:
-        response = requests.get(url, timeout=10)
-        articles = response.json().get("articles", [])
-        positive, negative = 0, 0
-        for article in articles[:5]:
+        # שליפת סנטימנט מ-NewsAPI
+        news_url = f"https://newsapi.org/v2/everything?q={symbol}&language=en&sortBy=publishedAt&pageSize=10&apiKey={NEWS_API_KEY}"
+        news_response = requests.get(news_url)
+        articles = news_response.json().get("articles", [])
+
+        negative = 0
+        positive = 0
+
+        for article in articles:
             title = article.get("title", "").lower()
-            if any(word in title for word in ["beats", "growth", "strong", "gain"]):
-                positive += 1
-            if any(word in title for word in ["miss", "drop", "loss", "weak"]):
+            description = article.get("description", "").lower()
+            content = f"{title} {description}"
+            if any(word in content for word in ["drop", "fall", "loss", "lawsuit", "bad", "negative", "decline"]):
                 negative += 1
+            elif any(word in content for word in ["gain", "rise", "growth", "positive", "strong", "beat", "upside"]):
+                positive += 1
+
+        sentiment = "ניטרלי"
         if positive > negative:
-            return "חיובי"
+            sentiment = "חיובי"
         elif negative > positive:
-            return "שלילי"
-        else:
-            return "ניטרלי"
+            sentiment = "שלילי"
+
+        fundamentals["sentiment"] = sentiment
+
     except Exception as e:
-        log_error(f"שגיאה בשליפת סנטימנט חדשות עבור {symbol}: {str(e)}")
-        return "לא זמין"
+        print(f"שגיאה בשליפת סנטימנט חדשותי: {e}")
+        fundamentals["sentiment"] = "לא זמין"
+
+    return fundamentals
 
