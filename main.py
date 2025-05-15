@@ -4,28 +4,23 @@ from datetime import datetime, timedelta
 import pytz
 import exchange_calendars as ec
 from dotenv import load_dotenv
-from utils import get_today_events, mark_holiday_message_sent, already_sent_holiday_message
+
 from utils import (
     send_discord_message,
     already_sent_holiday_message,
     mark_holiday_message_sent,
-    get_upcoming_events,
-    get_today_events,
-    get_stock_list
+    get_today_events
 )
 from fundamentals import analyze_fundamentals
 from technicals import run_technical_analysis
-from macro import send_macro_summary
-
+from stock_list import STOCK_LIST
 from config import (
     ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENTAGE, TAKE_PROFIT_PERCENTAGE,
-    DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_ERROR_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL,
+    DISCORD_PUBLIC_WEBHOOK, DISCORD_ERROR_WEBHOOK, DISCORD_PRIVATE_WEBHOOK,
     ALPHA_VANTAGE_API_KEY, NEWS_API_KEY
 )
 
 load_dotenv()
-
-STOCK_LIST = get_stock_list()
 
 def is_half_day(nyse_calendar, date):
     schedule = nyse_calendar.schedule.loc[date:date]
@@ -35,87 +30,75 @@ def is_half_day(nyse_calendar, date):
         return (close_time - open_time).seconds < 6.5 * 3600
     return False
 
+def get_today_holiday_name():
+    try:
+        import pandas_market_calendars as mcal
+        nyse = mcal.get_calendar('NYSE')
+        today = datetime.now(pytz.timezone("America/New_York")).date()
+        holidays = nyse.holidays().holidays
+        for holiday in holidays:
+            if holiday.date() == today:
+                return nyse.name
+    except Exception:
+        return None
+    return None
+
 def main():
     try:
         nyse = ec.get_calendar("XNYS")
         today = datetime.now(pytz.timezone("America/New_York")).date()
         now = datetime.now(pytz.timezone("Asia/Jerusalem"))
+        date_str = today.strftime("%Y-%m-%d")
 
-        weekday = today.weekday()
+        # הודעת לוג התחלתית
+        print("הבוט התחיל לפעול וממתין לשעת האיתות...")
 
-        print("הבוט התעורר בשעה 09:30, יתחיל לפעול ב־11:00")
+        # בדיקה אם אין מסחר היום
+        try:
+            sessions = nyse.sessions_in_range(
+                start_date=now - timedelta(days=1),
+                end_date=now + timedelta(days=1)
+            )
+            valid_days = [d.date() for d in sessions]
 
-        if now.strftime("%H:%M") == "11:00":
-            send_discord_message(DISCORD_PRIVATE_WEBHOOK, "הבוט התחיל לפעול. בדוק בערוץ הפרטי.", message_type="log")
-
-        if now.strftime("%H:%M") == "11:10":
-            print("הבוט התחיל לבדוק את הפרי־מרקט")
-
-        if weekday == 6 and now.strftime("%H:%M") == "12:00":
-            send_macro_summary()
-            print("הבוט שלח עדכון מאקרו")
-
-        # בדיקת יום מסחר
-        sessions = nyse.sessions_in_range(start_date=now - timedelta(days=1), end_date=now + timedelta(days=1))
-        if today not in sessions:
-            date_str = today.strftime("%Y-%m-%d")
-            if not already_sent_holiday_message(date_str):
-                send_discord_message(DISCORD_PUBLIC_WEBHOOK, "אין מסחר היום לפי לוח שנה של NYSE.", message_type="market")
-                mark_holiday_message_sent(date_str)
+            if today not in valid_days:
+                if not already_sent_holiday_message(date_str):
+                    holiday_name = get_today_holiday_name()
+                    message = "אין מסחר היום לפי לוח שנה של NYSE."
+                    if holiday_name:
+                        message += f" חג: {holiday_name}."
+                    send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="market")
+                    mark_holiday_message_sent(date_str)
+                return
+        except Exception as e:
+            send_discord_message(DISCORD_ERROR_WEBHOOK, f"שגיאה בבדיקת יום מסחר: {e}", message_type="error")
             return
 
-        # הגדרת שעות לפי סוג היום
-        is_gap = (datetime(today.year, 3, 10) <= today <= datetime(today.year, 3, 29))
+        # זיהוי סוג יום מסחר
         half_day = is_half_day(nyse, today)
+        is_dst_gap = (datetime(today.year, 3, 10) <= today <= datetime(today.year, 3, 29))
 
         if half_day:
-            print("הבוט סיים לבדוק את הפרי־מרקט והתחיל את המסחר. ישלח איתות 20 דקות לפני סגירה")
-            signal_time = "19:40"  # לדוגמה
-            end_message_time = "20:10"
-        elif is_gap:
-            print("הבוט סיים לבדוק את הפרי־מרקט והתחיל את המסחר. ישלח איתות ב־21:40 בגלל פערי שעון")
+            signal_time = "19:40"
+        elif is_dst_gap:
             signal_time = "21:40"
-            end_message_time = "22:10"
         else:
-            print("הבוט סיים לבדוק את הפרי־מרקט והתחיל את המסחר. ישלח איתות ב־22:40")
             signal_time = "22:40"
-            end_message_time = "23:10"
+
+        print(f"הבוט ממתין לאיתות בשעה {signal_time}")
 
         while True:
-            now = datetime.now(pytz.timezone("Asia/Jerusalem"))
-            now_str = now.strftime("%H:%M")
-
-            # כל שעה עגולה – בדיקת אירועים כלכליים
-            if now.minute == 0:
-                print("הבוט מחפש אירועים כלכליים...")
-                events = get_upcoming_events()
-                for event in events:
-                    event_time = event.get("time")
-                    if event_time:
-                        event_dt = datetime.strptime(event_time, "%H:%M") - timedelta(hours=1)
-                        if now.strftime("%H:%M") == event_dt.strftime("%H:%M"):
-                            send_discord_message(DISCORD_PUBLIC_WEBHOOK, f"זוהה אירוע כלכלי: {event.get('title')}. הבוט קובע: {'היכנס' if 'positive' in event.get('impact', '') else 'אל תיכנס'}.", message_type="macro")
-
-                # שליחת סיכום לאחר האירוע
-                for event in get_today_events():
-                    event_time = event.get("time")
-                    if event_time:
-                        event_dt = datetime.strptime(event_time, "%H:%M") + timedelta(minutes=15)
-                        if now.strftime("%H:%M") == event_dt.strftime("%H:%M"):
-                            send_discord_message(DISCORD_PUBLIC_WEBHOOK, f"האירוע '{event.get('title')}' הסתיים. הבוט שלח את הסיכום לערוץ הציבורי.", message_type="macro")
-
-            # שליחת איתות יומי
-            if now_str == signal_time:
+            now_time = datetime.now(pytz.timezone("Asia/Jerusalem")).strftime("%H:%M")
+            if now_time == signal_time:
+                print("מפעיל ניתוח פונדומנטלי וטכני...")
                 fundamentals = analyze_fundamentals(STOCK_LIST)
                 technicals = run_technical_analysis(STOCK_LIST)
-                best_signal = "איתות סופי לדוגמה..."
+
+                # איתור האיתות החזק ביותר
+                best_signal = "איתות סופי לדוגמה – כאן יבוא האלגוריתם החכם."
                 send_discord_message(DISCORD_PUBLIC_WEBHOOK, best_signal, message_type="signal_main")
-
-            # שליחת הודעת סיום
-            if now_str == "02:00":
-                send_discord_message(DISCORD_PRIVATE_WEBHOOK, "הבוט סיים לפעול. נשלחה הודעת עדכון יומי.", message_type="end")
+                print("איתות נשלח.")
                 break
-
             time.sleep(30)
 
     except Exception as e:
