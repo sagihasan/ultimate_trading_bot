@@ -1,0 +1,6 @@
+rsi,macd,volume,ma_cross,in_demand_zone,in_buffett_zone,sentiment_score,weekly_trend,daily_trend,success
+52,1.2,2000000,1,1,1,0.9,1,1,1
+45,-0.3,1500000,0,0,0,0.4,0,0,0
+60,0.5,3000000,1,1,1,0.8,1,1,1
+39,-1.0,1000000,0,0,0,0.3,0,0,0
+48,0.2,1800000,1,1,1,0.7,1,1,1
