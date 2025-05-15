@@ -1,14 +1,10 @@
 import pandas as pd
 from datetime import datetime
-from utils import (
-    save_to_excel,
-    create_return_chart,
-    create_pdf_report,
-    calculate_tax,
-    send_discord_message
-)
 from config import DISCORD_PRIVATE_WEBHOOK
-
+from utils import (
+    save_to_excel, create_return_chart, create_pdf_report,
+    calculate_tax, send_discord_message
+)
 
 def generate_weekly_report(trades, returns):
     date_range = get_week_range()
@@ -23,10 +19,9 @@ def generate_weekly_report(trades, returns):
 
     send_discord_message(
         DISCORD_PRIVATE_WEBHOOK,
-        f"דו\"ח שבועי מוכן לתאריכים: {date_range}",
+        f"דו\"ח שבועי מוכן עבור {date_range}. נשלחו קבצים מצורפים.",
         message_type="weekly_report"
     )
-
 
 def generate_monthly_report(trades, returns):
     today = datetime.today()
@@ -42,10 +37,9 @@ def generate_monthly_report(trades, returns):
 
     send_discord_message(
         DISCORD_PRIVATE_WEBHOOK,
-        f"דו\"ח חודשי עבור {month_name} מוכן. ראה קבצים מצורפים.",
+        f"דו\"ח חודשי עבור {month_name} נשלח עם הקבצים.",
         message_type="monthly_report"
     )
-
 
 def get_week_range():
     today = datetime.today()
@@ -53,9 +47,8 @@ def get_week_range():
     end = start + pd.to_timedelta(6, unit="D")
     return f"{start.strftime('%d/%m')}–{end.strftime('%d/%m')}"
 
-
 def create_summary_text(trades, returns, date_range):
-    total_profit = sum(t.get("profit", 0) for t in trades)
+    total_profit = sum([t.get("profit", 0) for t in trades])
     tax_data = calculate_tax(total_profit)
     win_count = sum(1 for t in trades if t.get("profit", 0) > 0)
     loss_count = len(trades) - win_count
