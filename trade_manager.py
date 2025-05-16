@@ -1,39 +1,31 @@
-from utils import send_discord_message, save_to_excel, log_error
-from config import DISCORD_PUBLIC_WEBHOOK
+# trade_manager.py
+
+import json
 from datetime import datetime
 
-trade_management_log = []
+OPEN_TRADES_FILE = "open_trades.json"
 
-def manage_trades(open_trades):
-    for trade in open_trades:
+def add_open_trade(symbol, entry_price, stop_loss, take_profit):
+    try:
+        trade = {
+            "symbol": symbol,
+            "entry_price": entry_price,
+            "stop_loss": stop_loss,
+            "take_profit": take_profit,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
         try:
-            symbol = trade["symbol"]
-            current_price = trade["current_price"]
-            entry_price = trade["entry_price"]
-            stop_loss = trade["stop_loss"]
-            take_profit = trade["take_profit"]
+            with open(OPEN_TRADES_FILE, "r", encoding="utf-8") as f:
+                trades = json.load(f)
+        except:
+            trades = []
 
-            # ניהול עסקה: אם הרווח גדול מ־3%, עדכן סטופ לוס
-            if current_price >= entry_price * 1.03:
-                new_stop = round(entry_price * 1.01, 2)
-                message = (
-                    f"ניהול עסקה ({symbol}):\n"
-                    f"המחיר עלה מעל 3%, הבוט עדכן סטופ לוס ל־{new_stop}$\n"
-                    f"טייק פרופיט נשאר {take_profit}$"
-                )
-                send_discord_message(DISCORD_PUBLIC_WEBHOOK, message, message_type="management")
-                log_trade_action(symbol, stop_loss, new_stop, take_profit, take_profit)
+        trades = [t for t in trades if t["symbol"] != symbol]
+        trades.append(trade)
 
-        except Exception as e:
-            log_error(f"שגיאה בניהול עסקה עבור {trade.get('symbol', 'לא ידוע')}: {str(e)}")
+        with open(OPEN_TRADES_FILE, "w", encoding="utf-8") as f:
+            json.dump(trades, f, indent=4)
 
-def log_trade_action(symbol, old_stop, new_stop, old_take, new_take):
-    trade_management_log.append({
-        "symbol": symbol,
-        "old_stop_loss": old_stop,
-        "new_stop_loss": new_stop,
-        "old_take_profit": old_take,
-        "new_take_profit": new_take,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
-    })
-    save_to_excel(trade_management_log, "trade_management_log.xlsx")
+    except Exception as e:
+        print(f"שגיאה בהוספת עסקה: {e}")
