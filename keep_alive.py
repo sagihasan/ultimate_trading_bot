@@ -1,15 +1,17 @@
-from flask import Flask
-from threading import Thread
+# keep_alive.py
 
-app = Flask('')
+from flask import Flask
+import threading
+
+app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Bot is running!"
+    return "הבוט פעיל!"
 
-def run():
+def run_server():
     app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
-    t = Thread(target=run)
-    t.start()
+    thread = threading.Thread(target=run_server)
+    thread.start()
