@@ -1,120 +1,93 @@
-import os
-import time
-from datetime import datetime
+# main.py
+
 from config import *
-from discord_manager import send_discord_message, send_error_message
 from fundamentals import get_fundamentals
 from technicals import analyze_technicals
-from macro_analyzer import analyze_macro_conditions
+from macro import analyze_macro_conditions
+from discord_manager import send_discord_message, send_error_message
+from ml_model import predict_success_probability
+from stock_list import STOCK_LIST
 from risk_management import calculate_stop_loss, calculate_take_profit
-from trade_manager import load_open_trades, save_trade, close_trade
 from trade_management import manage_open_trades
-from log_manager import log_error
-from zones import check_zones
-from screener import get_stock_list
-
-def is_market_open():
-    now = datetime.now()
-    return now.weekday() < 5 and MARKET_OPEN_HOUR <= now.hour < MARKET_CLOSE_HOUR
+from datetime import datetime
+import pytz
 
 def analyze_stock(symbol):
     try:
         fundamentals = get_fundamentals(symbol)
-        if not fundamentals:
-            return None
-
         technicals = analyze_technicals(symbol)
         macro = analyze_macro_conditions()
-        zones_info = check_zones(symbol)
 
-        all_conditions = {
-            "fundamentals": fundamentals,
-            "technicals": technicals,
-            "macro": macro,
-            "zones": zones_info
+        if fundamentals["growth_type"] == "צניחה" or fundamentals["sentiment"] == "שלילי":
+            return None
+
+        features = {
+            "rsi": technicals["rsi"],
+            "macd": technicals["macd"],
+            "volume": technicals["volume"],
+            "ma_cross": technicals["ma_cross"],
+            "in_demand_zone": technicals["in_demand_zone"],
+            "in_buffett_zone": fundamentals["in_buffett_zone"],
+            "sentiment_score": fundamentals["sentiment_score"],
+            "weekly_trend": technicals["weekly_trend"],
+            "daily_trend": technicals["daily_trend"]
         }
 
-        # תנאי חובה: פונדומנטלי + 4 תנאים טכניים
-        mandatory = fundamentals["growth_type"] != "צניחה" and fundamentals["market_cap"] > 1_000_000_000
-        tech_conditions = sum([
-            technicals.get("ma_crossover", False),
-            technicals.get("rsi_ok", False),
-            technicals.get("macd_ok", False),
-            technicals.get("volume_ok", False),
-            technicals.get("price_action_ok", False),
-            zones_info.get("in_demand_zone", False)
-        ])
-
-        if mandatory and tech_conditions >= 4:
+        score = predict_success_probability(features)
+        if score >= 0.95:
             return {
                 "symbol": symbol,
-                "entry_price": technicals.get("entry_price"),
-                "stop_loss": calculate_stop_loss(technicals.get("entry_price"), "long"),
-                "take_profit": calculate_take_profit(technicals.get("entry_price"), "long"),
-                "direction": "long",
-                "fundamentals": fundamentals,
-                "macro": macro,
-                "zones": zones_info
+                "entry_price": technicals["entry_price"],
+                "stop_loss": calculate_stop_loss(technicals["entry_price"]),
+                "take_profit": calculate_take_profit(technicals["entry_price"]),
+                "ai_score": round(score * 100),
+                "growth_type": fundamentals["growth_type"],
+                "sentiment": fundamentals["sentiment"],
+                "macro_note": macro["note"]
             }
-        return None
+
     except Exception as e:
-        log_error(f"שגיאה בניתוח מניה {symbol}: {e}")
+        send_error_message(f"שגיאה בניתוח {symbol}:\n{e}")
         return None
-def create_signal_message(data):
-    f = data["fundamentals"]
-    m = data["macro"]
-    z = data["zones"]
-    symbol = data["symbol"]
-    entry = round(data["entry_price"], 2)
-    sl = round(data["stop_loss"], 2)
-    tp = round(data["take_profit"], 2)
-    sentiment = f["sentiment"]
-    growth = f["growth_type"]
-    macro_note = m["note"]
-    zone_status = "Yes" if z.get("in_demand_zone") else "No"
 
-    # תוכל לשנות ידנית או לדחוף לדינמיקה בהמשך
-    order_type = "Stop Limit"  # אפשר: Market, Limit, Stop, Stop Limit
+def run_daily_signal():
+    best_signal = None
+    for symbol in STOCK_LIST:
+        result = analyze_stock(symbol)
+        if result:
+            best_signal = result
+            break
 
-    # ניסוח פקודה לפי סוג
-    if order_type.lower() == "market":
-        price_line = f"פקודת כניסה: **Market** – כניסה מיידית לפי המחיר הזמין בשוק."
-    elif order_type.lower() in ["limit", "stop", "stop limit"]:
-        price_line = f"פקודת כניסה: **{order_type}** במחיר: {entry}"
-    else:
-        price_line = f"פקודת כניסה: **{order_type}**"
+    if best_signal:
+        message = f"""**איתות קרבי – {best_signal['symbol']}**
+פקודת כניסה: **Market**
+מחיר כניסה: {best_signal['entry_price']}
+סטופ לוס: {best_signal['stop_loss']}
+טייק פרופיט: {best_signal['take_profit']}
 
-    message = f"""**איתות קרבי – {symbol}**
-{price_line}
-סטופ לוס: {sl}
-טייק פרופיט: {tp}
-מחיר נוכחי: {entry}
-סנטימנט: {sentiment}
-צמיחה: {growth}
-מאקרו: {macro_note}
-אזור אסטרטגי: {zone_status}
+AI Score: {best_signal['ai_score']}/100  
+סנטימנט: {best_signal['sentiment']}  
+צמיחה: {best_signal['growth_type']}  
+מאקרו: {best_signal['macro_note']}
 
-**הוראה: להיכנס לעסקה. אין פשרות. הביצוע עכשיו.**
+**הבוט קובע: להיכנס לעסקה עכשיו.**
 """
-    return message
-    def run_trade_management():
-    try:
-        manage_open_trades()
-    except Exception as e:
-        log_error(f"שגיאה בניהול עסקאות פתוחות: {e}")
+        send_discord_message(message)
+    else:
+        send_discord_message("אין איתות היום – השוק מבולבל. אין כניסה. הבוט ממשיך לעקוב.")
 
-def fallback_signal_if_needed():
+def run_bot():
     try:
-        now = datetime.now()
-        if now.hour == 22 and now.minute >= 40:
-            open_trades = load_open_trades()
-            if not open_trades:
-                send_discord_message("22:40 – לא נשלח איתות היום. הסיבה: אף מניה לא עמדה בכל התנאים הקרביים.")
+        # ניהול עסקאות – כל יום בזמן קבוע
+        manage_open_trades()
+
+        # איתות יומי – פעם אחת ביום
+        current_time = datetime.now(pytz.timezone("Asia/Jerusalem")).strftime("%H:%M")
+        if current_time == DAILY_SIGNAL_TIME:
+            run_daily_signal()
+
     except Exception as e:
-        log_error(f"שגיאה ב־fallback_signal_if_needed: {e}")
+        send_error_message(f"שגיאת מערכת:\n{e}")
 
 if __name__ == "__main__":
-    print("הבוט התחיל לעבוד.")
-    run_bot()
-    run_trade_management()
-    fallback_signal_if_needed()
+    run_bot())
