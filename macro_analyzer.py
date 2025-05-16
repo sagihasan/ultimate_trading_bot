@@ -1,19 +1,20 @@
-def analyze_macro_conditions():
-    """
-    סימולציה פשוטה – ניתן להרחיב את זה לשליפות אמיתיות ממקורות כמו Investing או FRED.
-    """
-    # דוגמה של תנאים נוכחיים – יש להחליף בנתונים בזמן אמת
-    macro = {
-        "gdp_growth": True,
-        "interest_rate_stable": True,
-        "inflation_under_control": True,
-        "unemployment_low": True,
-        "event_impact": "בינוני",
-        "note": "המאקרו תומך בשוק"
+# macro_analyzer.py
+
+from macro import analyze_macro_conditions
+from fundamentals import get_fundamentals
+
+def evaluate_macro_and_fundamentals(symbol):
+    fundamentals = get_fundamentals(symbol)
+    macro = analyze_macro_conditions()
+
+    summary = {
+        "symbol": symbol,
+        "macro_sentiment": macro["macro_sentiment"],
+        "macro_note": macro["note"],
+        "growth_type": fundamentals.get("growth_type", "ניטרלית"),
+        "sentiment": fundamentals.get("sentiment", "ניטרלי"),
+        "buffett_zone": fundamentals.get("in_buffett_zone", False),
+        "pe_ratio": fundamentals.get("pe_ratio", 0)
     }
 
-    if not (macro["gdp_growth"] and macro["inflation_under_control"]):
-        macro["note"] = "המאקרו מאותת זהירות"
-        macro["event_impact"] = "חזק"
-
-    return macro
+    return summary
