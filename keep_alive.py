@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "הבוט פעיל!"
+    return "הבוט פועל!"
 
 def run_server():
     app.run(host='0.0.0.0', port=8080)
