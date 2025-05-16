@@ -10,7 +10,7 @@ def analyze_macro_conditions():
     macro_sentiment = "ניטרלי"
     macro_note = "אין השפעה מהותית מהמאקרו כרגע."
 
-    # סימולציה לאירועים
+    # סימולציה לאירועים – לדוגמה:
     if today == 1 and random.random() < 0.5:
         macro_sentiment = "שלילי"
         macro_note = "נאום של הפד היום – השוק מתוח."
