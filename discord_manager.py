@@ -3,7 +3,7 @@
 import requests
 import os
 
-# נטען את ה-Webhooks מקובץ .env
+# שליפת Webhooks מהסביבה (.env)
 PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK_URL")
 PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK_URL")
 ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK_URL")
