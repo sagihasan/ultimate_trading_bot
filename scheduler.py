@@ -1,45 +1,39 @@
-# scheduler.py – ניהול עסקאות ודוחות
+# scheduler.py
 
 import time
+import threading
+from macro_monitor import check_upcoming_macro_events
+from gap_detector import check_gap_signals
+from trade_management import manage_open_trades
+from daily_summary import send_nightly_summary
 from datetime import datetime
-from reporting import generate_weekly_report, generate_monthly_report
-from trade_manager import manage_trades
-from utils import load_trade_data, load_open_trades, send_discord_message
-from config import DISCORD_PRIVATE_WEBHOOK
+import pytz
 
-
-def run_scheduler():
+def run_scheduled_tasks():
     while True:
-        now = datetime.now()
-        day = now.weekday()
-        hour = now.hour
-        minute = now.minute
+        now = datetime.now(pytz.timezone("Asia/Jerusalem"))
+        current_time = now.strftime("%H:%M")
 
-        trades = load_trade_data()
-        returns = [t.get("cumulative_return", 0) for t in trades]
-        open_trades = load_open_trades()
+        # כל שעה עגולה – בדיקת אירועי מאקרו מתקרבים
+        if now.minute == 0:
+            check_upcoming_macro_events()
 
-        # דוח שבועי – שבת (יום 5) ב־12:00
-        if day == 5 and hour == 12 and minute == 0:
-            generate_weekly_report(trades, returns)
+        # 22:30 רגיל / 21:30 פערי שעון / 19:30 חצי יום – ניהול עסקאות
+        if current_time in ["22:30", "21:30", "19:30"]:
+            manage_open_trades()
 
-        # דוח חודשי – כל 1 לחודש ב־12:00
-        if now.day == 1 and hour == 12 and minute == 0:
-            generate_monthly_report(trades, returns)
+        # סיכום יומי – כל לילה ב־02:00
+        if current_time == "02:00":
+            send_nightly_summary()
 
-        # ניהול עסקאות – כל חצי שעה (10:00–22:00) אם יש עסקאות פתוחות
-        if 10 <= hour <= 22 and minute in [0, 30] and open_trades:
-            manage_trades(open_trades)
+        # בדיקת גאפ – כל יום ב־23:15
+        if current_time == "23:15":
+            check_gap_signals()
 
-        # שליחת עדכון יומי כל יום בשעה 02:00 בלילה
-        if hour == 2 and minute == 0 and day in [0, 1, 2, 3, 4]:  # שני עד שישי
-            try:
-                send_discord_message(DISCORD_PRIVATE_WEBHOOK, "הבוט שלח עדכון יומי לערוץ הציבורי", message_type="log")
-            except:
-                pass
+        time.sleep(60)  # המתן דקה לפני הבדיקה הבאה
 
-        time.sleep(60)
-
-
-if __name__ == "__main__":
-    run_scheduler()
+# כדי להפעיל את הסקדולר ברקע
+def start_scheduler():
+    scheduler_thread = threading.Thread(target=run_scheduled_tasks)
+    scheduler_thread.daemon = True
+    scheduler_thread.start()
