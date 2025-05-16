@@ -10,7 +10,6 @@ def log_error(error_message):
     full_message = f"[{timestamp}] {error_message}\n"
     print(full_message)
 
-    # שמירה לקובץ לוג
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(full_message)
