@@ -2,71 +2,74 @@
 
 import requests
 import os
-from datetime import datetime
 
 ALPHA_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 def get_fundamentals(symbol):
-    fundamentals = {
-        "market_cap": 0,
-        "growth_type": "ניטרלית",
-        "sentiment": "ניטרלי",
-        "sentiment_score": 0.5,
-        "in_buffett_zone": False
-    }
-
+    fundamentals = {}
     try:
-        # שליפת נתוני דוח מאזני
         url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_API_KEY}"
         response = requests.get(url)
         data = response.json()
 
-        fundamentals["market_cap"] = int(data.get("MarketCapitalization", 0))
+        market_cap = float(data.get("MarketCapitalization", 0))
+        revenue = float(data.get("RevenueTTM", 0))
+        net_income = float(data.get("NetIncomeTTM", 0))
+        eps = float(data.get("EPS", 0))
         pe_ratio = float(data.get("PERatio", 0))
-        revenue_growth = float(data.get("RevenueTTM", 0)) > 0
-        net_income = float(data.get("ProfitMargin", 0)) > 0
 
-        # סיווג צמיחה
-        if revenue_growth and net_income:
-            fundamentals["growth_type"] = "צמיחה"
-        elif not revenue_growth and not net_income:
-            fundamentals["growth_type"] = "צניחה"
+        growth_type = "נייטרלית"
+        if revenue > 0 and net_income > 0 and eps > 0:
+            growth_type = "צמיחה"
+        elif revenue < 0 or net_income < 0:
+            growth_type = "צניחה"
 
-        # בדיקת Buffett Zone (לדוגמה בלבד – תוכל לשנות ל־ fair value בהמשך)
-        fundamentals["in_buffett_zone"] = pe_ratio < 15 and fundamentals["growth_type"] == "צמיחה"
+        in_buffett_zone = (pe_ratio > 0 and pe_ratio < 15 and market_cap > 1_000_000_000 and net_income > 0)
+
+        fundamentals = {
+            "market_cap": market_cap,
+            "revenue": revenue,
+            "net_income": net_income,
+            "eps": eps,
+            "pe_ratio": pe_ratio,
+            "growth_type": growth_type,
+            "in_buffett_zone": in_buffett_zone
+        }
 
     except Exception as e:
-        print(f"שגיאה בנתונים פונדומנטליים: {e}")
+        print(f"שגיאה בפונדומנטלים ({symbol}): {e}")
 
-    # ניתוח סנטימנט מ-NewsAPI
     try:
-        news_url = f"https://newsapi.org/v2/everything?q={symbol}&language=en&sortBy=publishedAt&apiKey={NEWS_API_KEY}"
-        response = requests.get(news_url)
-        articles = response.json().get("articles", [])
+        news_url = f"https://newsapi.org/v2/everything?q={symbol}&language=en&sortBy=publishedAt&pageSize=10&apiKey={NEWS_API_KEY}"
+        news_response = requests.get(news_url)
+        articles = news_response.json().get("articles", [])
 
-        positive, negative = 0, 0
-        for article in articles[:10]:
-            title = article["title"].lower()
-            if any(word in title for word in ["beats", "strong", "growth", "surge", "record"]):
+        positive = 0
+        negative = 0
+        for article in articles:
+            content = (article.get("title", "") + " " + article.get("description", "")).lower()
+            if any(word in content for word in ["gain", "rise", "growth", "positive", "strong", "beat"]):
                 positive += 1
-            elif any(word in title for word in ["misses", "weak", "loss", "drop", "down"]):
+            elif any(word in content for word in ["drop", "fall", "loss", "lawsuit", "bad", "negative"]):
                 negative += 1
 
         sentiment = "ניטרלי"
-        score = 0.5
+        sentiment_score = 0.5
         if positive > negative:
             sentiment = "חיובי"
-            score = 0.8
+            sentiment_score = 0.8
         elif negative > positive:
             sentiment = "שלילי"
-            score = 0.2
+            sentiment_score = 0.2
 
         fundamentals["sentiment"] = sentiment
-        fundamentals["sentiment_score"] = score
+        fundamentals["sentiment_score"] = sentiment_score
 
     except Exception as e:
-        print(f"שגיאה בניתוח סנטימנט: {e}")
+        fundamentals["sentiment"] = "לא זמין"
+        fundamentals["sentiment_score"] = 0.5
+        print(f"שגיאה בסנטימנט: {e}")
 
     return fundamentals
 
