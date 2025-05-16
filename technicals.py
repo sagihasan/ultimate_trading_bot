@@ -1,64 +1,48 @@
+# technicals.py
+
 import yfinance as yf
 import pandas as pd
-import ta
-from config import ACCOUNT_SIZE, RISK_PERCENTAGE, STOP_LOSS_PERCENT, TAKE_PROFIT_PERCENT
-from utils import log_error
+import talib
 
-def run_technical_analysis(symbols):
-    results = []
+def analyze_technicals(symbol):
+    try:
+        data = yf.download(symbol, period="6mo", interval="1d", progress=False)
+        data.dropna(inplace=True)
 
-    for symbol in symbols:
-        try:
-            data = yf.download(symbol, period="6mo", interval="1d", progress=False)
-            if data.empty or len(data) < 50:
-                continue
+        close = data["Close"]
+        volume = data["Volume"]
 
-            df = data.copy()
-            df.dropna(inplace=True)
+        rsi = float(talib.RSI(close, timeperiod=14)[-1])
+        macd, macdsignal, _ = talib.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
+        ma_9 = talib.EMA(close, timeperiod=9)
+        ma_20 = talib.EMA(close, timeperiod=20)
+        ma_cross = int(ma_9[-1] > ma_20[-1])
 
-            # Indicators using Exponential Moving Averages (EMA)
-            df["ema50"] = ta.trend.EMAIndicator(close=df["Close"], window=50).ema_indicator()
-            df["ema200"] = ta.trend.EMAIndicator(close=df["Close"], window=200).ema_indicator()
-            df["rsi"] = ta.momentum.RSIIndicator(close=df["Close"], window=14).rsi()
-            df["macd"] = ta.trend.MACD(close=df["Close"]).macd_diff()
-            bb = ta.volatility.BollingerBands(close=df["Close"])
-            df["bb_upper"] = bb.bollinger_hband()
-            df["bb_lower"] = bb.bollinger_lband()
+        # מגמה יומית / שבועית
+        daily_trend = "לונג" if ma_9[-1] > ma_20[-1] else "שורט"
+        weekly_data = yf.download(symbol, period="2y", interval="1wk", progress=False)
+        weekly_ma = talib.EMA(weekly_data["Close"], timeperiod=9)
+        weekly_trend = "לונג" if weekly_data["Close"][-1] > weekly_ma[-1] else "שורט"
 
-            df.dropna(inplace=True)
+        # Volume
+        avg_volume = volume.rolling(window=20).mean()
+        high_volume = volume[-1] > avg_volume[-1]
 
-            latest = df.iloc[-1]
-            previous = df.iloc[-2]
+        # כניסה והגדרת אזור ביקוש
+        entry_price = round(close[-1], 2)
+        in_demand_zone = (close[-1] < ma_20[-1]) and (volume[-1] > avg_volume[-1])
 
-            score = 0
-            if latest["rsi"] > 50:
-                score += 1
-            if latest["macd"] > 0 and previous["macd"] < 0:
-                score += 1
-            if latest["Close"] > latest["ema50"]:
-                score += 1
-            if latest["Close"] > latest["ema200"]:
-                score += 1
-            if latest["Close"] < latest["bb_upper"] and latest["Close"] > latest["bb_lower"]:
-                score += 1
+        return {
+            "rsi": round(rsi, 2),
+            "macd": round(macd[-1] - macdsignal[-1], 4),
+            "volume": int(volume[-1]),
+            "ma_cross": ma_cross,
+            "in_demand_zone": in_demand_zone,
+            "entry_price": entry_price,
+            "weekly_trend": weekly_trend,
+            "daily_trend": daily_trend
+        }
 
-            if score >= 3:
-                price = latest["Close"]
-                stop_loss = round(price * (1 - STOP_LOSS_PERCENT / 100), 2)
-                take_profit = round(price * (1 + TAKE_PROFIT_PERCENT / 100), 2)
-                risk_amount = ACCOUNT_SIZE * (RISK_PERCENTAGE / 100)
-                position_size = round(risk_amount / max(price - stop_loss, 0.01), 2)
-
-                results.append({
-                    "symbol": symbol,
-                    "score": score,
-                    "price": round(price, 2),
-                    "stop_loss": stop_loss,
-                    "take_profit": take_profit,
-                    "position_size": position_size
-                })
-
-        except Exception as e:
-            log_error(f"שגיאה בניתוח טכני עבור {symbol}: {str(e)}")
-
-    return sorted(results, key=lambda x: x["score"], reverse=True)
+    except Exception as e:
+        print(f"שגיאה בניתוח טכני ל־{symbol}: {e}")
+        return {}
