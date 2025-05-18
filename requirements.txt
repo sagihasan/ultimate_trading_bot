@@ -17,3 +17,4 @@ flask
 joblib
 scikit-learn
 investing-scraper
+flask
