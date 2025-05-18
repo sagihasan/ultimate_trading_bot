@@ -1,21 +1,23 @@
-# log_manager.py
-
+import pandas as pd
 from datetime import datetime
-import traceback
+import os
 
-LOG_FILE = "logs/error_log.txt"
+# קובץ יומן איתותים
+LOG_FILE = "data/trades_log.xlsx"
 
-def log_error(error_message):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    full_message = f"[{timestamp}] {error_message}\n"
-    print(full_message)
-
+def log_trade(data):
     try:
-        with open(LOG_FILE, "a", encoding="utf-8") as f:
-            f.write(full_message)
-    except Exception as e:
-        print(f"שגיאה בשמירת הלוג: {e}")
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data['timestamp'] = now
 
-def log_exception(e):
-    tb = traceback.format_exc()
-    log_error(f"{str(e)}\n{tb}")
+        if os.path.exists(LOG_FILE):
+            df = pd.read_excel(LOG_FILE)
+            df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
+        else:
+            df = pd.DataFrame([data])
+
+        df.to_excel(LOG_FILE, index=False)
+        print("עסקה נרשמה בהצלחה.")
+
+    except Exception as e:
+        print(f"שגיאה ברישום עסקה: {e}")
