@@ -4,6 +4,7 @@
 STOP_LOSS_PERCENTAGE = 0.03  # 3%
 TAKE_PROFIT_PERCENTAGE = 0.06  # 6%
 RISK_REWARD_RATIO = 1 / 2  # יחס 1:2
+ACCOUNT_SIZE = 951  # גודל התיק שלך
 
 # נפח מינימלי לסינון מניות
 MIN_VOLUME = 500_000
