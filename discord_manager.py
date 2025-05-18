@@ -33,6 +33,9 @@ def send_discord_message(message, is_error=False, is_private=False, file=None):
     except Exception as e:
         print(f"שגיאה בשליחת ההודעה לדיסקורד: {e}")
 
+def send_error_message(message):
+    send_discord_message(message, is_error=True)
+
 # יצירת הודעת איתות מעוצבת
 def create_signal_message(signal_data):
     return f"""
