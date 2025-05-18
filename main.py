@@ -30,7 +30,7 @@ from config import (
 )
 
 # טוען את רשימת המניות מבחוץ
-from stocks_list import STOCK_LIST
+from stock_list import STOCK_LIST
 
 # מודולים פנימיים
 from discord_manager import send_discord_message, send_error_message
