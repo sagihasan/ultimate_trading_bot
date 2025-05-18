@@ -1,52 +1,45 @@
 # trade_management.py
 
 import json
-from discord_manager import send_discord_message
 from datetime import datetime
+from pathlib import Path
 
-OPEN_TRADES_FILE = "open_trades.json"
-LOG_FILE = "data/trade_management_log.xlsx"
+TRADE_LOG_PATH = Path("trade_log.json")
+OPEN_TRADES_PATH = Path("open_trades.json")
 
-def manage_open_trades():
-    try:
-        with open(OPEN_TRADES_FILE, "r", encoding="utf-8") as f:
-            trades = json.load(f)
+def load_open_trades():
+    if OPEN_TRADES_PATH.exists():
+        with open(OPEN_TRADES_PATH, "r") as f:
+            return json.load(f)
+    return []
 
-        updated_trades = []
+def save_open_trades(trades):
+    with open(OPEN_TRADES_PATH, "w") as f:
+        json.dump(trades, f, indent=2)
 
-        for trade in trades:
-            symbol = trade["symbol"]
-            current_price = trade.get("current_price", trade["entry_price"] * 1.03)
-            stop_loss = trade["stop_loss"]
-            take_profit = trade["take_profit"]
+def log_trade_result(trade_result):
+    if TRADE_LOG_PATH.exists():
+        with open(TRADE_LOG_PATH, "r") as f:
+            logs = json.load(f)
+    else:
+        logs = []
 
-            message = f"""**ניהול עסקה – {symbol}**
-מחיר נוכחי: {current_price}
-סטופ קודם: {stop_loss}
-טייק קודם: {take_profit}
-"""
+    logs.append(trade_result)
 
-            # אם יש רווח נאה – קדם סטופ
-            if current_price > take_profit * 0.95:
-                new_stop = round(current_price * 0.98, 2)
-                message += f"\nהבוט קובע: להזיז סטופ ל־{new_stop} ולשמור יעד רווח."
-                trade["stop_loss"] = new_stop
-                updated_trades.append(trade)
+    with open(TRADE_LOG_PATH, "w") as f:
+        json.dump(logs, f, indent=2)
 
-            elif current_price < stop_loss * 1.01:
-                message += f"\nהבוט קובע: לצאת מהעסקה עכשיו – מגמה נשברת."
-                continue  # לא נוסיף לרשימה
-
-            else:
-                message += f"\nאין שינוי. הבוט עוקב."
-
-                updated_trades.append(trade)
-
-            send_discord_message(message)
-
-        # שמירה חזרה
-        with open(OPEN_TRADES_FILE, "w", encoding="utf-8") as f:
-            json.dump(updated_trades, f, indent=4)
-
-    except Exception as e:
-        send_discord_message(f"שגיאה בניהול עסקאות:\n{e}")
+def create_trade_entry(symbol, direction, entry_price, stop_loss, take_profit, reason, zone, market_rating):
+    return {
+        "תאריך": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "מניה": symbol,
+        "סוג עסקה": direction,
+        "מחיר כניסה": entry_price,
+        "סטופ לוס": stop_loss,
+        "טייק פרופיט": take_profit,
+        "תוצאה": "",
+        "(%) תשואה": "",
+        "אזור מיוחד": zone,
+        "תחזית שוק": market_rating,
+        "סיבה": reason
+    }
