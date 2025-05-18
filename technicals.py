@@ -1,5 +1,6 @@
 import pandas as pd
 import pandas_ta as ta
+from zones import identify_zones
 
 def analyze_technicals(df):
     result = {}
@@ -40,14 +41,14 @@ def analyze_technicals(df):
     # Volume
     result["volume"] = volume.iloc[-1]
 
-    # Moving Average Cross
+    # EMA Crosses
     result["ema_cross"] = {
         "9_20": "bullish" if result["ema_9"] > result["ema_20"] else "bearish",
         "20_50": "bullish" if result["ema_20"] > result["ema_50"] else "bearish",
         "50_200": "bullish" if result["ema_50"] > result["ema_200"] else "bearish"
     }
 
-    # Price Crosses (האם המחיר חצה ממוצע נוכחי)
+    # Price Crosses
     yesterday = close.iloc[-2]
     today = close.iloc[-1]
     result["price_cross"] = {
@@ -56,10 +57,17 @@ def analyze_technicals(df):
         "ema_50": "up" if yesterday < result["ema_50"] and today > result["ema_50"] else "down" if yesterday > result["ema_50"] and today < result["ema_50"] else "none"
     }
 
-    # Trend direction
+    # Trend Direction
     result["trend"] = "long" if result["ema_9"] > result["ema_20"] and result["macd"] > result["macd_signal"] else "short"
 
-    # Indicators
+    # Bullish / Bearish / Mixed
+    result["trend_sentiment"] = (
+        "Bullish" if result["ema_9"] > result["ema_20"] > result["ema_50"] and result["macd"] > result["macd_signal"]
+        else "Bearish" if result["ema_9"] < result["ema_20"] < result["ema_50"] and result["macd"] < result["macd_signal"]
+        else "Mixed"
+    )
+
+    # Summary
     result["indicators"] = {
         "rsi": round(result["rsi"], 2),
         "macd": round(result["macd"], 2),
@@ -69,10 +77,7 @@ def analyze_technicals(df):
         "bollinger": result["bb_breakout"]
     }
 
-    # הערכות להמשך - Fibonacci, Golden Zone וכו' (יבוצע בקובץ נפרד zones.py)
-    result["zones"] = {
-        "in_golden_zone": False,  # יעודכן בזיהוי
-        "in_demand_zone": False   # יעודכן בזיהוי
-    }
+    # Zones
+    result["zones"] = identify_zones(df)
 
     return result
