@@ -1,44 +1,33 @@
-# technicals.py
-
-import yfinance as yf
 import pandas as pd
-import talib
-import numpy as np
+import pandas_ta as ta
 
-def calculate_indicators(df):
-    df['EMA9'] = talib.EMA(df['Close'], timeperiod=9)
-    df['EMA20'] = talib.EMA(df['Close'], timeperiod=20)
-    df['EMA50'] = talib.EMA(df['Close'], timeperiod=50)
-    df['EMA100'] = talib.EMA(df['Close'], timeperiod=100)
-    df['EMA200'] = talib.EMA(df['Close'], timeperiod=200)
+def analyze_technicals(df):
+    result = {}
 
-    df['RSI'] = talib.RSI(df['Close'], timeperiod=14)
-    df['MACD'], df['MACD_signal'], _ = talib.MACD(df['Close'])
+    close = df["Close"]
+    volume = df["Volume"]
 
-    upper, middle, lower = talib.BBANDS(df['Close'], timeperiod=20)
-    df['BB_upper'] = upper
-    df['BB_middle'] = middle
-    df['BB_lower'] = lower
+    # RSI
+    result["rsi"] = ta.rsi(close, length=14).iloc[-1]
 
-    df['Volume_SMA_20'] = talib.SMA(df['Volume'], timeperiod=20)
-    df['Volume_Spike'] = df['Volume'] > 1.5 * df['Volume_SMA_20']
+    # MACD
+    macd = ta.macd(close)
+    result["macd"] = macd["MACD_12_26_9"].iloc[-1] if "MACD_12_26_9" in macd else None
+    result["macd_signal"] = macd["MACDs_12_26_9"].iloc[-1] if "MACDs_12_26_9" in macd else None
 
-    df['MA_Cross'] = (df['EMA9'] > df['EMA20']) & (df['EMA9'].shift(1) <= df['EMA20'].shift(1))
+    # EMA Cross
+    ema_short = ta.ema(close, length=9)
+    ema_long = ta.ema(close, length=20)
+    if ema_short is not None and ema_long is not None:
+        result["ma_cross"] = int(ema_short.iloc[-1] > ema_long.iloc[-1])
 
-    return df
+    # Bollinger Bands
+    bbands = ta.bbands(close)
+    result["boll_upper"] = bbands["BBU_20_2.0"].iloc[-1] if "BBU_20_2.0" in bbands else None
+    result["boll_middle"] = bbands["BBM_20_2.0"].iloc[-1] if "BBM_20_2.0" in bbands else None
+    result["boll_lower"] = bbands["BBL_20_2.0"].iloc[-1] if "BBL_20_2.0" in bbands else None
 
-def fetch_and_analyze_stock(ticker):
-    timeframes = {
-        "daily": "1d",
-        "weekly": "1wk",
-        "monthly": "1mo"
-    }
-    
-    analyzed_data = {}
-    for name, interval in timeframes.items():
-        df = yf.download(ticker, period="6mo", interval=interval, progress=False)
-        if df.empty or len(df) < 20:
-            continue
-        analyzed_data[name] = calculate_indicators(df)
+    # Volume
+    result["volume"] = volume.iloc[-1]
 
-    return analyzed_data
+    return result
