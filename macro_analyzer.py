@@ -1,20 +1,39 @@
 # macro_analyzer.py
 
-from macro import analyze_macro_conditions
-from fundamentals import get_fundamentals
+from macro import (
+    get_macro_data,
+    detect_upcoming_crisis,
+    detect_gap_warning_from_macro,
+    format_macro_summary,
+    is_market_bullish
+)
 
-def evaluate_macro_and_fundamentals(symbol):
-    fundamentals = get_fundamentals(symbol)
-    macro = analyze_macro_conditions()
+def analyze_macro():
+    events = get_macro_data()
+    summary = format_macro_summary()
+    bullish = is_market_bullish(summary)
 
-    summary = {
-        "symbol": symbol,
-        "macro_sentiment": macro["macro_sentiment"],
-        "macro_note": macro["note"],
-        "growth_type": fundamentals.get("growth_type", "ניטרלית"),
-        "sentiment": fundamentals.get("sentiment", "ניטרלי"),
-        "buffett_zone": fundamentals.get("in_buffett_zone", False),
-        "pe_ratio": fundamentals.get("pe_ratio", 0)
-    }
+    alerts = []
 
-    return summary
+    # בדיקת גאפ צפוי מאירוע מקרו
+    gap_alert = detect_gap_warning_from_macro(events)
+    if gap_alert:
+        alerts.append(gap_alert)
+
+    # בדיקת משבר פוטנציאלי
+    crisis_alert = detect_upcoming_crisis(events)
+    if crisis_alert:
+        alerts.append(crisis_alert)
+
+    # מצב השוק הכללי
+    market_trend = "Bullish (עולה)" if bullish else "Bearish (יורד)"
+
+    report = f"""**סקירה מקרו לשוק**
+{summary}
+
+**מצב השוק הכללי:** {market_trend}
+"""
+    if alerts:
+        report += "\n\n**התראות חשובות:**\n" + "\n".join(alerts)
+
+    return report
