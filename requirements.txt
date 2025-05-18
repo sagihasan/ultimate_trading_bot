@@ -16,5 +16,5 @@ pandas_ta
 flask
 joblib
 scikit-learn
-investing-scraper
+investpy
 flask
