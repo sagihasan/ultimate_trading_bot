@@ -1,75 +1,61 @@
-# fundamentals.py
-
+import yfinance as yf
+from datetime import datetime, timedelta
 import requests
-import os
 
-ALPHA_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-
-def get_fundamentals(symbol):
-    fundamentals = {}
+def analyze_fundamentals(ticker):
     try:
-        url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHA_API_KEY}"
-        response = requests.get(url)
-        data = response.json()
+        stock = yf.Ticker(ticker)
+        info = stock.info
 
-        market_cap = float(data.get("MarketCapitalization", 0))
-        revenue = float(data.get("RevenueTTM", 0))
-        net_income = float(data.get("NetIncomeTTM", 0))
-        eps = float(data.get("EPS", 0))
-        pe_ratio = float(data.get("PERatio", 0))
+        market_cap = info.get("marketCap", 0)
+        pe_ratio = info.get("trailingPE", 0)
+        forward_pe = info.get("forwardPE", 0)
+        earnings_growth = info.get("earningsQuarterlyGrowth", 0)
+        sector = info.get("sector", "לא ידוע")
 
-        growth_type = "נייטרלית"
-        if revenue > 0 and net_income > 0 and eps > 0:
-            growth_type = "צמיחה"
-        elif revenue < 0 or net_income < 0:
-            growth_type = "צניחה"
+        # תחזית פונדומנטלית כללית
+        if market_cap > 10_000_000_000 and earnings_growth > 0:
+            trend = "צמיחה"
+        elif earnings_growth < 0:
+            trend = "צניחה"
+        else:
+            trend = "ניטרלי"
 
-        in_buffett_zone = (pe_ratio > 0 and pe_ratio < 15 and market_cap > 1_000_000_000 and net_income > 0)
+        # ניקוד פונדומנטלי לצורך AI
+        score = 0
+        if market_cap > 5_000_000_000:
+            score += 25
+        if pe_ratio > 0 and pe_ratio < 30:
+            score += 25
+        if earnings_growth > 0:
+            score += 25
+        if forward_pe and forward_pe < pe_ratio:
+            score += 25
 
-        fundamentals = {
+        return {
             "market_cap": market_cap,
-            "revenue": revenue,
-            "net_income": net_income,
-            "eps": eps,
             "pe_ratio": pe_ratio,
-            "growth_type": growth_type,
-            "in_buffett_zone": in_buffett_zone
+            "forward_pe": forward_pe,
+            "earnings_growth": earnings_growth,
+            "sector": sector,
+            "trend": trend,
+            "fundamental_score": score
         }
 
     except Exception as e:
-        print(f"שגיאה בפונדומנטלים ({symbol}): {e}")
+        print(f"שגיאה בניתוח פונדומנטלי עבור {ticker}: {e}")
+        return None
 
+def check_upcoming_earnings(ticker):
     try:
-        news_url = f"https://newsapi.org/v2/everything?q={symbol}&language=en&sortBy=publishedAt&pageSize=10&apiKey={NEWS_API_KEY}"
-        news_response = requests.get(news_url)
-        articles = news_response.json().get("articles", [])
-
-        positive = 0
-        negative = 0
-        for article in articles:
-            content = (article.get("title", "") + " " + article.get("description", "")).lower()
-            if any(word in content for word in ["gain", "rise", "growth", "positive", "strong", "beat"]):
-                positive += 1
-            elif any(word in content for word in ["drop", "fall", "loss", "lawsuit", "bad", "negative"]):
-                negative += 1
-
-        sentiment = "ניטרלי"
-        sentiment_score = 0.5
-        if positive > negative:
-            sentiment = "חיובי"
-            sentiment_score = 0.8
-        elif negative > positive:
-            sentiment = "שלילי"
-            sentiment_score = 0.2
-
-        fundamentals["sentiment"] = sentiment
-        fundamentals["sentiment_score"] = sentiment_score
-
+        stock = yf.Ticker(ticker)
+        earnings_date = stock.calendar.get('Earnings Date')
+        if earnings_date is not None:
+            now = datetime.now().date()
+            earnings_day = earnings_date[0].date()
+            delta_days = (earnings_day - now).days
+            return earnings_day, delta_days
+        return None, None
     except Exception as e:
-        fundamentals["sentiment"] = "לא זמין"
-        fundamentals["sentiment_score"] = 0.5
-        print(f"שגיאה בסנטימנט: {e}")
-
-    return fundamentals
-
+        print(f"שגיאה בבדיקת דוח קרוב עבור {ticker}: {e}")
+        return None, None
