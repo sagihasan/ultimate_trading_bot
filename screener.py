@@ -1,40 +1,25 @@
 # screener.py
 
 import yfinance as yf
-from discord_manager import send_discord_message
-from stock_list import STOCK_LIST
-import talib
+import pandas as pd
 
-def run_screener():
-    strong_candidates = []
+def detect_unusual_volume(stock_list, volume_threshold=1.5):
+    unusual_stocks = []
 
-    for symbol in STOCK_LIST:
+    for symbol in stock_list:
         try:
-            data = yf.download(symbol, period="3mo", interval="1d", progress=False)
-            if data.empty:
+            data = yf.download(symbol, period="30d", interval="1d", progress=False)
+            if data is None or data.empty:
                 continue
 
-            close = data["Close"]
-            volume = data["Volume"]
-            ma20 = talib.SMA(close, timeperiod=20)
-            avg_volume = volume.rolling(window=20).mean()
+            data['avg_volume'] = data['Volume'].rolling(window=20).mean()
+            latest_volume = data['Volume'].iloc[-1]
+            avg_volume = data['avg_volume'].iloc[-1]
 
-            latest_close = close[-1]
-            latest_volume = volume[-1]
-
-            price_above_ma = latest_close > ma20[-1]
-            high_volume = latest_volume > avg_volume[-1] * 1.5
-
-            if price_above_ma and high_volume:
-                strong_candidates.append(symbol)
+            if avg_volume and latest_volume > volume_threshold * avg_volume:
+                unusual_stocks.append(symbol)
 
         except Exception as e:
-            print(f"שגיאה בסריקת {symbol}: {e}")
+            print(f"שגיאה בנתוני {symbol}: {e}")
 
-    if strong_candidates:
-        message = "**התראת סקרינר – מניות חזקות שבלטו היום:**\n"
-        for s in strong_candidates:
-            message += f"- {s}\n"
-        send_discord_message(message)
-    else:
-        send_discord_message("**הסקרינר הסתיים – לא נמצאו מניות חזקות כרגע.**")
+    return unusual_stocks
