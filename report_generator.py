@@ -1,58 +1,55 @@
-# report_generator.py
-
-import pandas as pd
-import matplotlib.pyplot as plt
-from datetime import datetime
 import os
+import matplotlib.pyplot as plt
+import pandas as pd
+from fpdf import FPDF
+from pathlib import Path
+from discord_manager import send_discord_message
+from datetime import datetime
 
-TRADES_FILE = "data/trades_log.xlsx"
-REPORT_IMAGE_PATH = "data/monthly_return_chart.png"
+DATA_PATH = Path("data")
+TRADES_LOG = DATA_PATH / "trades_log.xlsx"
+TRADE_MGMT_LOG = DATA_PATH / "trade_management_log.xlsx"
+REPORT_PDF = DATA_PATH / "monthly_report.pdf"
+CUMULATIVE_RETURN_IMG = DATA_PATH / "cumulative_return.png"
 
-def generate_monthly_report():
-    try:
-        df = pd.read_excel(TRADES_FILE)
-        df["תאריך"] = pd.to_datetime(df["תאריך"])
-        df["תשואה"] = df["return_%"].astype(float)
+def generate_cumulative_return_chart():
+    if not TRADES_LOG.exists():
+        return None
 
-        today = datetime.today()
-        first_day_current = today.replace(day=1)
-        last_day_prev = first_day_current - pd.Timedelta(days=1)
-        first_day_prev = last_day_prev.replace(day=1)
+    df = pd.read_excel(TRADES_LOG)
+    df["תשואה מצטברת"] = (1 + df["תשואה (%)"] / 100).cumprod()
+    plt.figure()
+    df["תשואה מצטברת"].plot(title="תשואה מצטברת", grid=True)
+    plt.xlabel("מספר עסקה")
+    plt.ylabel("תשואה")
+    plt.savefig(CUMULATIVE_RETURN_IMG)
+    plt.close()
+    return CUMULATIVE_RETURN_IMG
 
-        df_month = df[(df["תאריך"] >= first_day_prev) & (df["תאריך"] <= last_day_prev)]
-        if df_month.empty:
-            return "אין נתונים לחודש הקודם – לא נשלח דו״ח חודשי."
+def generate_pdf_report():
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=14)
+    pdf.cell(200, 10, txt="דו\"ח חודשי – בוט Ultimate", ln=True, align="C")
 
-        trades_count = len(df_month)
-        total_return = df_month["תשואה"].sum()
-        month_name = first_day_prev.strftime("%B").upper()
+    if TRADES_LOG.exists():
+        df = pd.read_excel(TRADES_LOG)
+        total_return = round(df["תשואה (%)"].sum(), 2)
+        win_rate = round((df["תוצאה"] == "הצלחה").sum() / len(df) * 100, 2)
+        pdf.cell(200, 10, txt=f"תשואה כוללת: {total_return}%", ln=True)
+        pdf.cell(200, 10, txt=f"אחוז הצלחה: {win_rate}%", ln=True)
 
-        # יעד ותוכנית
-        target = f"להשיג לפחות {round(min(10, total_return + 5), 1)}% תשואה עם 90% הצלחה"
-        plan = [
-            "עסקאות עם ניקוד AI ≥ 85 בלבד",
-            "לסחור רק במגמה תואמת יומית ושבועית",
-            "להעדיף אזורי ביקוש או Buffett Zone",
-            "להפעיל ניהול עסקה אקטיבי ועדכון סטופים"
-        ]
+    if CUMULATIVE_RETURN_IMG.exists():
+        pdf.image(str(CUMULATIVE_RETURN_IMG), x=10, y=50, w=180)
 
-        # הודעה
-        report = f"""**דו״ח חודשי – חודש {month_name}**
-עסקאות שבוצעו: {trades_count}
-תשואה חודשית: {round(total_return, 2)}%
+    pdf.output(REPORT_PDF)
+    return REPORT_PDF
 
-**מטרת החודש – {month_name}:**
-{target}
+def send_monthly_report_to_discord():
+    chart_path = generate_cumulative_return_chart()
+    pdf_path = generate_pdf_report()
 
-**תוכנית פעולה:**
-- {plan[0]}
-- {plan[1]}
-- {plan[2]}
-- {plan[3]}
-
-הצלחה היא לא מקרה. זאת משמעת.
-"""
-        return report
-
-    except Exception as e:
-        return f"שגיאה בדו\"ח חודשי: {e}"
+    send_discord_message("דו\"ח חודשי – סיכום בוט Ultimate:", file=str(pdf_path), is_private=True)
+    send_discord_message("גרף תשואה מצטברת:", file=str(chart_path), is_private=True)
+    send_discord_message("קובץ אקסל: trades_log.xlsx", file=str(TRADES_LOG), is_private=True)
+    send_discord_message("קובץ אקסל: trade_management_log.xlsx", file=str(TRADE_MGMT_LOG), is_private=True)
