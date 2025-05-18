@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
+from discord_manager import create_signal_message
 
 # טוען ENV
 load_dotenv()
