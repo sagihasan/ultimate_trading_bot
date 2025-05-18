@@ -1,9 +1,11 @@
 import pandas as pd
 import pandas_ta as ta
-from zones import identify_zones
 
 def analyze_technicals(df):
     result = {}
+
+    if len(df) < 60:
+        return None
 
     close = df["Close"]
     high = df["High"]
@@ -18,66 +20,74 @@ def analyze_technicals(df):
     result["macd"] = macd["MACD_12_26_9"].iloc[-1]
     result["macd_signal"] = macd["MACDs_12_26_9"].iloc[-1]
 
-    # EMAs
-    ema_9 = ta.ema(close, length=9)
-    ema_20 = ta.ema(close, length=20)
-    ema_50 = ta.ema(close, length=50)
-    ema_100 = ta.ema(close, length=100)
-    ema_200 = ta.ema(close, length=200)
+    # EMA Cross
+    ema_short = ta.ema(close, length=9)
+    ema_long = ta.ema(close, length=20)
+    result["ema_9"] = ema_short.iloc[-1]
+    result["ema_20"] = ema_long.iloc[-1]
+    result["ema_cross_up"] = ema_short.iloc[-2] < ema_long.iloc[-2] and ema_short.iloc[-1] > ema_long.iloc[-1]
+    result["ema_cross_down"] = ema_short.iloc[-2] > ema_long.iloc[-2] and ema_short.iloc[-1] < ema_long.iloc[-1]
 
-    result["ema_9"] = ema_9.iloc[-1]
-    result["ema_20"] = ema_20.iloc[-1]
-    result["ema_50"] = ema_50.iloc[-1]
-    result["ema_100"] = ema_100.iloc[-1]
-    result["ema_200"] = ema_200.iloc[-1]
+    # Trend: Simple logic using EMA alignment
+    trend = "none"
+    if ema_short.iloc[-1] > ema_long.iloc[-1] and close.iloc[-1] > ema_short.iloc[-1]:
+        trend = "bullish"
+    elif ema_short.iloc[-1] < ema_long.iloc[-1] and close.iloc[-1] < ema_short.iloc[-1]:
+        trend = "bearish"
+    result["trend"] = trend
 
     # Bollinger Bands
-    bb = ta.bbands(close)
+    bb = ta.bbands(close, length=20)
     result["bb_upper"] = bb["BBU_20_2.0"].iloc[-1]
     result["bb_lower"] = bb["BBL_20_2.0"].iloc[-1]
-    result["bb_mid"] = bb["BBM_20_2.0"].iloc[-1]
-    result["bb_breakout"] = "above" if close.iloc[-1] > result["bb_upper"] else "below" if close.iloc[-1] < result["bb_lower"] else "inside"
 
-    # Volume
-    result["volume"] = volume.iloc[-1]
-
-    # EMA Crosses
-    result["ema_cross"] = {
-        "9_20": "bullish" if result["ema_9"] > result["ema_20"] else "bearish",
-        "20_50": "bullish" if result["ema_20"] > result["ema_50"] else "bearish",
-        "50_200": "bullish" if result["ema_50"] > result["ema_200"] else "bearish"
-    }
-
-    # Price Crosses
-    yesterday = close.iloc[-2]
-    today = close.iloc[-1]
-    result["price_cross"] = {
-        "ema_9": "up" if yesterday < result["ema_9"] and today > result["ema_9"] else "down" if yesterday > result["ema_9"] and today < result["ema_9"] else "none",
-        "ema_20": "up" if yesterday < result["ema_20"] and today > result["ema_20"] else "down" if yesterday > result["ema_20"] and today < result["ema_20"] else "none",
-        "ema_50": "up" if yesterday < result["ema_50"] and today > result["ema_50"] else "down" if yesterday > result["ema_50"] and today < result["ema_50"] else "none"
-    }
-
-    # Trend Direction
-    result["trend"] = "long" if result["ema_9"] > result["ema_20"] and result["macd"] > result["macd_signal"] else "short"
-
-    # Bullish / Bearish / Mixed
-    result["trend_sentiment"] = (
-        "Bullish" if result["ema_9"] > result["ema_20"] > result["ema_50"] and result["macd"] > result["macd_signal"]
-        else "Bearish" if result["ema_9"] < result["ema_20"] < result["ema_50"] and result["macd"] < result["macd_signal"]
-        else "Mixed"
-    )
-
-    # Summary
+    # Indicators Summary
     result["indicators"] = {
         "rsi": round(result["rsi"], 2),
         "macd": round(result["macd"], 2),
         "macd_signal": round(result["macd_signal"], 2),
-        "ema_cross": result["ema_cross"],
-        "price_cross": result["price_cross"],
-        "bollinger": result["bb_breakout"]
+        "ema_cross_up": result["ema_cross_up"],
+        "ema_cross_down": result["ema_cross_down"],
+        "bb_upper": round(result["bb_upper"], 2),
+        "bb_lower": round(result["bb_lower"], 2)
     }
 
     # Zones
     result["zones"] = identify_zones(df)
+
+    return result
+
+def identify_zones(df):
+    result = {
+        "in_golden_zone": False,
+        "in_demand_zone": False,
+        "bullish": False,
+        "bearish": False
+    }
+
+    if len(df) < 60:
+        return result
+
+    high = df["High"].rolling(window=60).max().iloc[-1]
+    low = df["Low"].rolling(window=60).min().iloc[-1]
+    current_price = df["Close"].iloc[-1]
+    diff = high - low
+
+    golden_zone_top = high - diff * 0.618
+    golden_zone_bottom = high - diff * 0.786
+
+    if golden_zone_bottom <= current_price <= golden_zone_top:
+        result["in_golden_zone"] = True
+
+    recent_lows = df.iloc[-20:]
+    low_volume_zone = recent_lows[recent_lows["Low"] == recent_lows["Low"].min()]
+    if not low_volume_zone.empty and low_volume_zone["Volume"].iloc[0] > df["Volume"].mean():
+        result["in_demand_zone"] = True
+
+    # Bullish/Bearish sentiment based on simple price action
+    if current_price > df["Close"].rolling(20).mean().iloc[-1]:
+        result["bullish"] = True
+    elif current_price < df["Close"].rolling(20).mean().iloc[-1]:
+        result["bearish"] = True
 
     return result
