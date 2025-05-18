@@ -1,31 +1,66 @@
 # trade_manager.py
 
-import json
+from trade_management import create_trade_entry, log_trade_result, load_open_trades, save_open_trades
 from datetime import datetime
 
-OPEN_TRADES_FILE = "open_trades.json"
+def evaluate_trade_exit(trade, current_price):
+    direction = trade["סוג עסקה"]
+    stop_loss = trade["סטופ לוס"]
+    take_profit = trade["טייק פרופיט"]
+    entry_price = trade["מחיר כניסה"]
 
-def add_open_trade(symbol, entry_price, stop_loss, take_profit):
-    try:
-        trade = {
-            "symbol": symbol,
-            "entry_price": entry_price,
-            "stop_loss": stop_loss,
-            "take_profit": take_profit,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+    # עבור לונג
+    if direction == "לונג":
+        if current_price <= stop_loss:
+            return "סטופ לוס"
+        elif current_price >= take_profit:
+            return "טייק פרופיט"
+    # עבור שורט
+    elif direction == "שורט":
+        if current_price >= stop_loss:
+            return "סטופ לוס"
+        elif current_price <= take_profit:
+            return "טייק פרופיט"
 
-        try:
-            with open(OPEN_TRADES_FILE, "r", encoding="utf-8") as f:
-                trades = json.load(f)
-        except:
-            trades = []
+    return None
 
-        trades = [t for t in trades if t["symbol"] != symbol]
-        trades.append(trade)
+def update_open_trades(current_prices):
+    open_trades = load_open_trades()
+    updated_trades = []
+    for trade in open_trades:
+        symbol = trade["מניה"]
+        if symbol in current_prices:
+            result = evaluate_trade_exit(trade, current_prices[symbol])
+            if result:
+                trade["תוצאה"] = result
+                trade["(%)] תשואה"] = calculate_return(trade, current_prices[symbol])
+                log_trade_result(trade)
+            else:
+                updated_trades.append(trade)
+        else:
+            updated_trades.append(trade)
+    save_open_trades(updated_trades)
 
-        with open(OPEN_TRADES_FILE, "w", encoding="utf-8") as f:
-            json.dump(trades, f, indent=4)
+def calculate_return(trade, exit_price):
+    entry = trade["מחיר כניסה"]
+    direction = trade["סוג עסקה"]
+    if direction == "לונג":
+        return round(((exit_price - entry) / entry) * 100, 2)
+    elif direction == "שורט":
+        return round(((entry - exit_price) / entry) * 100, 2)
+    return 0
 
-    except Exception as e:
-        print(f"שגיאה בהוספת עסקה: {e}")
+def open_new_trade(symbol, direction, entry_price, stop_loss, take_profit, reason, zone, market_rating):
+    new_trade = create_trade_entry(
+        symbol=symbol,
+        direction=direction,
+        entry_price=entry_price,
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+        reason=reason,
+        zone=zone,
+        market_rating=market_rating
+    )
+    trades = load_open_trades()
+    trades.append(new_trade)
+    save_open_trades(trades)
