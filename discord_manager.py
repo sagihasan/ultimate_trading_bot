@@ -2,21 +2,32 @@
 
 import requests
 import os
+from dotenv import load_dotenv
 
-# שליפת Webhooks מהסביבה (.env)
-PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK_URL")
-PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK_URL")
-ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK_URL")
+load_dotenv()
 
-def send_discord_message(message, is_private=False, is_error=False, file=None):
+# הגדרת Webhooks מה־.env
+PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK")
+PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
+ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK")
+
+# שליחת הודעה לדיסקורד
+def send_discord_message(message, is_error=False, is_private=False, file=None):
     try:
-        url = ERROR_WEBHOOK if is_error else PRIVATE_WEBHOOK if is_private else PUBLIC_WEBHOOK
+        if is_error:
+            url = ERROR_WEBHOOK
+        elif is_private:
+            url = PRIVATE_WEBHOOK
+        else:
+            url = PUBLIC_WEBHOOK
+
         if not url:
-            print("לא הוגדר Webhook לשליחה")
+            print("לא מוגדר Webhook לשליחה")
             return
 
         if file:
-            requests.post(url, files={"file": file})
+            with open(file, "rb") as f:
+                requests.post(url, files={"file": f})
         else:
             payload = {"content": message}
             requests.post(url, json=payload)
@@ -24,5 +35,6 @@ def send_discord_message(message, is_private=False, is_error=False, file=None):
     except Exception as e:
         print(f"שגיאה בשליחת הודעה לדיסקורד: {e}")
 
+# שליחת שגיאה
 def send_error_message(message):
-    send_discord_message(f"**שגיאת מערכת:**\n{message}", is_error=True)
+    send_discord_message(f"**שגיאת מערכת:** {message}", is_error=True)
