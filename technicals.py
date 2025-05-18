@@ -3,46 +3,42 @@
 import yfinance as yf
 import pandas as pd
 import talib
+import numpy as np
 
-def analyze_technicals(symbol):
-    try:
-        data = yf.download(symbol, period="6mo", interval="1d", progress=False)
-        data.dropna(inplace=True)
+def calculate_indicators(df):
+    df['EMA9'] = talib.EMA(df['Close'], timeperiod=9)
+    df['EMA20'] = talib.EMA(df['Close'], timeperiod=20)
+    df['EMA50'] = talib.EMA(df['Close'], timeperiod=50)
+    df['EMA100'] = talib.EMA(df['Close'], timeperiod=100)
+    df['EMA200'] = talib.EMA(df['Close'], timeperiod=200)
 
-        close = data["Close"]
-        volume = data["Volume"]
+    df['RSI'] = talib.RSI(df['Close'], timeperiod=14)
+    df['MACD'], df['MACD_signal'], _ = talib.MACD(df['Close'])
 
-        rsi = float(talib.RSI(close, timeperiod=14)[-1])
-        macd, macdsignal, _ = talib.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
-        ma_9 = talib.EMA(close, timeperiod=9)
-        ma_20 = talib.EMA(close, timeperiod=20)
-        ma_cross = int(ma_9[-1] > ma_20[-1])
+    upper, middle, lower = talib.BBANDS(df['Close'], timeperiod=20)
+    df['BB_upper'] = upper
+    df['BB_middle'] = middle
+    df['BB_lower'] = lower
 
-        # מגמה יומית / שבועית
-        daily_trend = "לונג" if ma_9[-1] > ma_20[-1] else "שורט"
-        weekly_data = yf.download(symbol, period="2y", interval="1wk", progress=False)
-        weekly_ma = talib.EMA(weekly_data["Close"], timeperiod=9)
-        weekly_trend = "לונג" if weekly_data["Close"][-1] > weekly_ma[-1] else "שורט"
+    df['Volume_SMA_20'] = talib.SMA(df['Volume'], timeperiod=20)
+    df['Volume_Spike'] = df['Volume'] > 1.5 * df['Volume_SMA_20']
 
-        # Volume
-        avg_volume = volume.rolling(window=20).mean()
-        high_volume = volume[-1] > avg_volume[-1]
+    df['MA_Cross'] = (df['EMA9'] > df['EMA20']) & (df['EMA9'].shift(1) <= df['EMA20'].shift(1))
 
-        # כניסה והגדרת אזור ביקוש
-        entry_price = round(close[-1], 2)
-        in_demand_zone = (close[-1] < ma_20[-1]) and (volume[-1] > avg_volume[-1])
+    return df
 
-        return {
-            "rsi": round(rsi, 2),
-            "macd": round(macd[-1] - macdsignal[-1], 4),
-            "volume": int(volume[-1]),
-            "ma_cross": ma_cross,
-            "in_demand_zone": in_demand_zone,
-            "entry_price": entry_price,
-            "weekly_trend": weekly_trend,
-            "daily_trend": daily_trend
-        }
+def fetch_and_analyze_stock(ticker):
+    timeframes = {
+        "daily": "1d",
+        "weekly": "1wk",
+        "monthly": "1mo"
+    }
+    
+    analyzed_data = {}
+    for name, interval in timeframes.items():
+        df = yf.download(ticker, period="6mo", interval=interval, progress=False)
+        if df.empty or len(df) < 20:
+            continue
+        analyzed_data[name] = calculate_indicators(df)
 
-    except Exception as e:
-        print(f"שגיאה בניתוח טכני ל־{symbol}: {e}")
-        return {}
+    return analyzed_data
