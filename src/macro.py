@@ -4,18 +4,23 @@ import yfinance as yf
 from datetime import datetime, timedelta
 
 def get_index_trend(ticker, period="6mo"):
-    data = yf.download(ticker, period=period)
-    if len(data) < 2:
-        return "לא זמין"
-    
-    ma_20 = data["Close"].rolling(window=20).mean()
+    try:
+        data = yf.download(ticker, period=period)
+        if data.empty or len(data) < 2:
+            return "לא זמין"
 
-    if float(data["Close"].iloc[-1]) > float(ma_20.iloc[-1]):
-        return "עלייה"
-    elif float(data["Close"].iloc[-1]) < float(ma_20.iloc[-1]):
-        return "ירידה"
-    else:
-        return "ניטרלי"
+        close = data["Close"].squeeze()
+        ma_20 = close.rolling(window=20).mean()
+
+        if close.iloc[-1] > ma_20.iloc[-1]:
+            return "עלייה"
+        elif close.iloc[-1] < ma_20.iloc[-1]:
+            return "ירידה"
+        else:
+            return "ניטרלי"
+    except Exception as e:
+        print(f"שגיאה ב־{ticker}: {e}")
+        return "לא זמין"
 
 def get_pe_ratio_sp500():
     try:
@@ -25,18 +30,22 @@ def get_pe_ratio_sp500():
         return "לא זמין"
 
 def get_vix_trend():
-    data = yf.download("VIX", period="6mo")
-    if len(data) < 2:
-        return {"daily": "לא זמין"}
-    
-    ma_20 = data["Close"].rolling(window=20).mean()
+    try:
+        data = yf.download("^VIX", period="6mo")
+        if data.empty or len(data) < 2:
+            return {"daily": "לא זמין"}
 
-    if float(data["Close"].iloc[-1]) > float(ma_20.iloc[-1]):
-        return {"daily": "עלייה"}
-    elif float(data["Close"].iloc[-1]) < float(ma_20.iloc[-1]):
-        return {"daily": "ירידה"}
-    else:
-        return {"daily": "ניטרלי"}
+        close = data["Close"].squeeze()
+        ma_20 = close.rolling(window=20).mean()
+
+        if close.iloc[-1] > ma_20.iloc[-1]:
+            return {"daily": "עלייה"}
+        elif close.iloc[-1] < ma_20.iloc[-1]:
+            return {"daily": "ירידה"}
+        else:
+            return {"daily": "ניטרלי"}
+    except:
+        return {"daily": "לא זמין"}
 
 def get_macro_summary():
     sp_trend_d = get_index_trend("^GSPC", period="1mo")
@@ -54,12 +63,12 @@ def get_macro_summary():
         "sp500": {
             "daily": sp_trend_d,
             "weekly": sp_trend_w,
-            "monthly": sp_trend_m,
+            "monthly": sp_trend_m
         },
         "nasdaq": {
             "daily": nasdaq_trend_d,
             "weekly": nasdaq_trend_w,
-            "monthly": nasdaq_trend_m,
+            "monthly": nasdaq_trend_m
         },
         "pe_ratio": pe_ratio,
         "vix_trend": vix
@@ -67,37 +76,38 @@ def get_macro_summary():
 
 def is_market_bullish(summary):
     return (
-        summary["sp500"]["daily"] == "עלייה"
-        and summary["nasdaq"]["daily"] == "עלייה"
-        and summary["vix_trend"]["daily"] == "ירידה"
+        summary["sp500"]["daily"] == "עלייה" and
+        summary["nasdaq"]["daily"] == "עלייה" and
+        summary["vix_trend"]["daily"] == "ירידה"
     )
 
 def detect_upcoming_crisis(events):
-    crisis_keywords = ["נפילה", "קריסה", "מיתון", "פיטורים", "חוב", "פשיטת רגל"]
+    crisis_keywords = ["מיתון", "פשיטת רגל", "משבר", "האטה", "אינפלציה", "קריסה"]
     for event in events:
         if any(keyword in event.lower() for keyword in crisis_keywords):
             return True
     return False
 
 def detect_gap_warning_from_macro(summary):
-    """
-    זיהוי התראה על גאפ קרוב לפי תנועות השוק והמדד הכללי
-    """
-    if summary["vix_trend"]["daily"] == "עלייה" and (
-        summary["sp500"]["daily"] == "ירידה" or
-        summary["nasdaq"]["daily"] == "ירידה"
+    if (
+        summary["vix_trend"]["daily"] == "עלייה" and (
+            summary["sp500"]["daily"] == "ירידה" or
+            summary["nasdaq"]["daily"] == "ירידה"
+        )
     ):
         return True
     return False
 
 def format_macro_summary(summary):
-    """
-    מחזיר תמצות ויזואלי של נתוני המאקרו לצורך דיווח
-    """
     return (
-        f"נתוני מאקרו:\n"
-        f"מגמת S&P 500: {summary['sp500']['daily']}\n"
-        f"מגמת נאסד״ק: {summary['nasdaq']['daily']}\n"
-        f"מגמת VIX: {summary['vix_trend']['daily']}\n"
-        f"מכפיל רווח S&P 500: {summary['pe_ratio']}\n"
+        f"נתוני מאקרו:
+"
+        f"מגמת S&P 500: {summary['sp500']['daily']}
+"
+        f"מגמת נאסד"ק: {summary['nasdaq']['daily']}
+"
+        f"מגמת VIX: {summary['vix_trend']['daily']}
+"
+        f"מכפיל רווח S&P 500: {summary['pe_ratio']}
+"
     )
