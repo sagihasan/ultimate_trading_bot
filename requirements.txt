@@ -12,7 +12,6 @@ exchange_calendars>=4.0.0,<5.0.0
 pandas_market_calendars
 alpha_vantage
 newsapi-python
-pandas_ta
 flask
 joblib
 scikit-learn
