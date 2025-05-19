@@ -1,6 +1,5 @@
 from fundamentals import analyze_fundamentals
 from technicals import analyze_technicals
-from macro import get_macro_data, get_index_trend, is_market_bullish
 from discord_manager import send_discord_message, create_signal_message
 from config import *
 from stock_list import STOCK_LIST
