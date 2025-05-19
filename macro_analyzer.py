@@ -1,7 +1,7 @@
 # macro_analyzer.py
 
 from macro import (
-    get_macro_data,
+    get_macro_summary,
     detect_upcoming_crisis,
     detect_gap_warning_from_macro,
     format_macro_summary,
