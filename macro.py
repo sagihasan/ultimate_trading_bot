@@ -3,8 +3,10 @@
 import yfinance as yf
 from datetime import datetime, timedelta
 
+def get_index_trend(ticker, period="6mo"):
+    data = yf.download(ticker, period=period)
 
-if len(data) < 2:
+    if len(data) < 2:
         return "לא זמין"
 
     ma_20 = data["Close"].rolling(window=20).mean()
@@ -16,7 +18,6 @@ if len(data) < 2:
     else:
         return "ניטרלי"
 
-
 def get_pe_ratio_sp500():
     try:
         pe_data = yf.Ticker("^GSPC").info
@@ -24,28 +25,29 @@ def get_pe_ratio_sp500():
     except:
         return "לא זמין"
 
-
 def get_vix_trend():
     data = yf.download("^VIX", period="6mo")
 
     if len(data) < 2:
-        return {"daily": "לא זמין", "weekly": "לא זמין"}
+        return {"daily": "לא זמין"}
 
-    daily_trend = "ירידה" if data["Close"].iloc[-1] < data["Close"].iloc[-2] else "עלייה"
-    weekly_ma = data["Close"].rolling(window=20).mean()
-    weekly_trend = "ירידה" if data["Close"].iloc[-1] < weekly_ma.iloc[-1] else "עלייה"
+    ma_20 = data["Close"].rolling(window=20).mean()
 
-    return {"daily": daily_trend, "weekly": weekly_trend}
+    if data["Close"].iloc[-1] > ma_20.iloc[-1]:
+        return {"daily": "עלייה"}
+    elif data["Close"].iloc[-1] < ma_20.iloc[-1]:
+        return {"daily": "ירידה"}
+    else:
+        return {"daily": "ניטרלי"}
 
+def get_macro_summary():
+    sp_trend_d = get_index_trend("^GSPC", "3mo")
+    sp_trend_w = get_index_trend("^GSPC", "6mo")
+    sp_trend_m = get_index_trend("^GSPC", "1y")
 
-def summarize_macro_trend():
-    sp_trend_d = get_index_trend("^GSPC", period="1mo")
-    sp_trend_w = get_index_trend("^GSPC", period="6mo")
-    sp_trend_m = get_index_trend("^GSPC", period="1y")
-
-    nasdaq_trend_d = get_index_trend("^IXIC", period="1mo")
-    nasdaq_trend_w = get_index_trend("^IXIC", period="6mo")
-    nasdaq_trend_m = get_index_trend("^IXIC", period="1y")
+    nasdaq_trend_d = get_index_trend("^IXIC", "3mo")
+    nasdaq_trend_w = get_index_trend("^IXIC", "6mo")
+    nasdaq_trend_m = get_index_trend("^IXIC", "1y")
 
     pe_ratio = get_pe_ratio_sp500()
     vix = get_vix_trend()
@@ -54,21 +56,20 @@ def summarize_macro_trend():
         "sp500": {
             "daily": sp_trend_d,
             "weekly": sp_trend_w,
-            "monthly": sp_trend_m
+            "monthly": sp_trend_m,
         },
         "nasdaq": {
             "daily": nasdaq_trend_d,
             "weekly": nasdaq_trend_w,
-            "monthly": nasdaq_trend_m
+            "monthly": nasdaq_trend_m,
         },
         "pe_ratio": pe_ratio,
-        "vix_trend": vix
+        "vix_trend": vix,
     }
-
 
 def is_market_bullish(summary):
     return (
-        summary["sp500"]["daily"] == "עלייה" and
-        summary["nasdaq"]["daily"] == "עלייה" and
-        summary["vix_trend"]["daily"] == "ירידה"
+        summary["sp500"]["daily"] == "עלייה"
+        and summary["nasdaq"]["daily"] == "עלייה"
+        and summary["vix_trend"]["daily"] == "ירידה"
     )
