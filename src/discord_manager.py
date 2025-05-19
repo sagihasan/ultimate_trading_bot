@@ -29,7 +29,7 @@ def send_error_message(error_msg):
     webhook_url = os.getenv("DISCORD_ERROR_WEBHOOK") or os.getenv("DISCORD_PRIVATE_WEBHOOK")
     bot_name = os.getenv("BOT_NAME", "Trading Bot")
     if webhook_url:
-        message = f"**{bot_name} - שגיאת מערכת:**
+        message = f"**{bot_name} - שגיאת מערכת:**/n"
 ```{error_msg}```"
         try:
             response = requests.post(webhook_url, json={"content": message})
