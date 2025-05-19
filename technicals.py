@@ -1,4 +1,5 @@
 import pandas as pd
+from ta import momentum, trend, volatility
 import numpy as np
 
 def analyze_technicals(df):
