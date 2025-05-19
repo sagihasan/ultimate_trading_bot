@@ -30,7 +30,7 @@ def send_error_message(error_msg):
     bot_name = os.getenv("BOT_NAME", "Trading Bot")
     if webhook_url:
         message = f"**{bot_name} - שגיאת מערכת:**/n"
-```{error_msg}```"
+        message = f"```{error_msg}```"
         try:
             response = requests.post(webhook_url, json={"content": message})
             if response.status_code != 204:
