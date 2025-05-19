@@ -4,7 +4,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 
 
-    if len(data) < 2:
+if len(data) < 2:
         return "לא זמין"
 
     ma_20 = data["Close"].rolling(window=20).mean()
