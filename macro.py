@@ -61,3 +61,4 @@ def is_market_bullish(summary):
         summary["sp500"]["daily"] == "עלייה" and
         summary["nasdaq"]["daily"] == "עלייה" and
         summary["vix_trend"]["daily"] == "ירידה"
+    )
