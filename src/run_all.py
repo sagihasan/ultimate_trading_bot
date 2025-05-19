@@ -4,19 +4,21 @@ from main import run_bot
 from reporting import send_monthly_report_if_needed, send_weekly_report
 from keep_alive import keep_alive
 from scheduler import start_scheduler
+from monthly_planner import send_monthly_plan
 
 if __name__ == "__main__":
-    # הרצה מתמשכת (שרת Flask)
+    # הפעלת keep alive
     keep_alive()
 
-    # הפעלת Scheduler לזימונים יומיים/שבועיים
+    # הפעלת Scheduler לזמנים קבועים (איתותים, ניתוחים, דיווחים)
     start_scheduler()
 
-    # הפעלת בוט מסחר יומית
+    # הרצת הבוט הראשי (איתותים, ניתוחים, ניהול עסקאות)
     run_bot()
 
-    # שליחת דוח חודשי אם היום הראשון בחודש
+    # שליחת דוחות
     send_monthly_report_if_needed()
-
-    # שליחת דוח שבועי אם שבת
     send_weekly_report()
+
+    # שליחת תוכנית חודשית בתחילת כל חודש
+    send_monthly_plan()
