@@ -1,71 +1,41 @@
 import os
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
+def send_public_message(content):
+    webhook_url = os.getenv("DISCORD_PUBLIC_WEBHOOK")
+    if webhook_url:
+        try:
+            response = requests.post(webhook_url, json={"content": content})
+            if response.status_code != 204:
+                print(f"שגיאה בשליחה לציבורי: {response.status_code} - {response.text}")
+        except Exception as e:
+            print(f"שגיאה בשליחה לציבורי: {e}")
+    else:
+        print("לא נמצא Webhook ציבורי")
 
-# Webhooks מקובץ .env
-PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK")
-PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
-ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK")
+def send_private_message(content):
+    webhook_url = os.getenv("DISCORD_PRIVATE_WEBHOOK")
+    if webhook_url:
+        try:
+            response = requests.post(webhook_url, json={"content": content})
+            if response.status_code != 204:
+                print(f"שגיאה בשליחה לפרטי: {response.status_code} - {response.text}")
+        except Exception as e:
+            print(f"שגיאה בשליחה לפרטי: {e}")
+    else:
+        print("לא נמצא Webhook פרטי")
 
-def create_embed(title, description, color):
-    return {
-        "embeds": [{
-            "title": title,
-            "description": description,
-            "color": color
-        }]
-    }
-
-# שליחת הודעה לדיסקורד
-def send_discord_message(message, is_error=False, is_private=False, file=None):
-    try:
-        if is_error:
-            url = ERROR_WEBHOOK
-        elif is_private:
-            url = PRIVATE_WEBHOOK
-        else:
-            url = PUBLIC_WEBHOOK
-
-        if not url:
-            print("שגיאה: Webhook לא מוגדר")
-            return
-
-        if file:
-            with open(file, "rb") as f:
-                requests.post(url, files={"file": f})
-        else:
-            payload = {"content": message}
-            requests.post(url, json=payload)
-
-    except Exception as e:
-        print(f"שגיאה בשליחת ההודעה לדיסקורד: {e}")
-
-def send_error_message(message):
-    send_discord_message(message, is_error=True)
-
-# יצירת הודעת איתות מעוצבת
-def create_signal_message(signal_data):
-    market_state = "שורי (Bullish)" if signal_data.get("market_bullish") else "דובי (Bearish)"
-    
-    message = f"""איתות מסחר חכם עבור מניית {signal_data['ticker']}
-
-● כיוון: {signal_data['direction']}
-● סוג פקודה: {signal_data['order_type']}
-● מחיר כניסה: {signal_data['entry_price']}
-● סטופ לוס: {signal_data['stop_loss']}
-● טייק פרופיט: {signal_data['take_profit']}
-
-● מגמה טכנית: {signal_data['trend_sentiment']}
-● אזור אסטרטגי: {signal_data['zones']}
-● מצב השוק הכללי: {market_state}
-● רמת הסיכון: {signal_data['risk_pct']}% ({signal_data['risk_dollars']}$)
-● פוטנציאל רווח: {signal_data['reward_pct']}% ({signal_data['reward_dollars']}$)
-
-● אינדיקטור AI: {signal_data['ai_score']}%
-● Confidence: {signal_data['confidence_score']}%
-
-הבוט קובע: {'להיכנס לעסקה' if signal_data['confidence_score'] > 70 else 'לא להיכנס לעסקה'}
-"""
-    return message
+def send_error_message(error_msg):
+    webhook_url = os.getenv("DISCORD_ERROR_WEBHOOK") or os.getenv("DISCORD_PRIVATE_WEBHOOK")
+    bot_name = os.getenv("BOT_NAME", "Trading Bot")
+    if webhook_url:
+        message = f"**{bot_name} - שגיאת מערכת:**
+```{error_msg}```"
+        try:
+            response = requests.post(webhook_url, json={"content": message})
+            if response.status_code != 204:
+                print(f"שגיאה בשליחת הודעת שגיאה: {response.status_code}")
+        except Exception as e:
+            print(f"שגיאה בשליחת שגיאה: {e}")
+    else:
+        print("Webhook שגיאות לא מוגדר")
