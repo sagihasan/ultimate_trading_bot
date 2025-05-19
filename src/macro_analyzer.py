@@ -15,6 +15,9 @@ def analyze_macro_trends(macro_summary):
     else:
         return "שוק מעורב"
 
+def analyze_macro_calendar():
+    # לוגיקה לניתוח לוח מאקרו
+    return "ניתוח מאקרו בוצע"
 
 def format_macro_summary(macro_summary):
     """
