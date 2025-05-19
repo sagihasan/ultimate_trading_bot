@@ -8,7 +8,7 @@ import yfinance as yf
 import datetime
 
 
-from macro import get_macro_summary, is_market_bullish
+from macro import is_market_bullish
 
 # בתוך הפונקציה שמבצעת ניתוח
 macro_summary = get_macro_summary()
