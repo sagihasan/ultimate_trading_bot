@@ -12,6 +12,11 @@ TRADE_MGMT_LOG = DATA_PATH / "trade_management_log.xlsx"
 REPORT_PDF = DATA_PATH / "monthly_report.pdf"
 CUMULATIVE_RETURN_IMG = DATA_PATH / "cumulative_return.png"
 
+def generate_macro_calendar_report():
+    print("הפקת דוח לוח מאקרו")
+    # כאן תוכל להוסיף לוגיקה אמיתית בעתיד
+    return
+
 def generate_cumulative_return_chart():
     if not TRADES_LOG.exists():
         return None
