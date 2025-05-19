@@ -1,73 +1,65 @@
+# main.py
+
 from fundamentals import analyze_fundamentals
 from technicals import analyze_technicals
+from macro import get_macro_summary, is_market_bullish
 from discord_manager import send_discord_message, create_signal_message
 from config import *
 from stock_list import STOCK_LIST
 import yfinance as yf
 import datetime
 
-
-from macro import is_market_bullish
-
-# בתוך הפונקציה שמבצעת ניתוח
-macro_summary = get_macro_summary()
-market_bullish = is_market_bullish(macro_summary)
-
-# הכנס לדוח הסופי או איתות
-signal["macro_summary"] = macro_summary
-signal["market_bullish"] = market_bullish
-
-
 def run_bot():
-    today = datetime.datetime.now().date()
-    macro_summary = get_macro_data()
-    sp500_trend = get_index_trend('^GSPC')
-    nasdaq_trend = get_index_trend('^IXIC')
-    vix_trend = get_index_trend('^VIX')
+    today = datetime.datetime.now()
+    signal_sent = False
 
-    market_summary = {
-        "sp500": {"daily": "עלה" if sp500_trend == "שורי" else "ירד"},
-        "nasdaq": {"daily": "עלה" if nasdaq_trend == "שורי" else "ירד"},
-        "vix_trend": {"daily": "יורד" if vix_trend == "דובי" else "עולה"}
-    }
-
-    market_bullish = is_market_bullish(market_summary)
+    # ניתוח מאקרו כולל והשפעה
+    macro_summary = get_macro_summary()
+    market_bullish = is_market_bullish(macro_summary)
 
     for ticker in STOCK_LIST:
-        try:
-            df = yf.download(ticker, period="6mo")
-            if df is None or df.empty:
-                continue
+        df = yf.download(ticker, period="6mo")
 
-            technicals = analyze_technicals(df)
-            fundamentals = analyze_fundamentals(ticker)
+        if df is None or df.empty or len(df) < 60:
+            continue
 
-            signal_data = {
-                "ticker": ticker,
-                "entry_price": technicals.get("entry_price", 0),
-                "stop_loss": 0,
-                "take_profit": 0,
-                "direction": technicals.get("direction", "N/A"),
-                "order_type": technicals.get("order_type", "Market"),
-                "ai_score": 80,
-                "confidence_score": 85,
-                "risk_pct": 3,
-                "reward_pct": 6,
-                "risk_dollars": 300,
-                "reward_dollars": 600,
-                "trend_sentiment": technicals.get("trend", "neutral"),
-                "zones": str(technicals.get("zones", {})),
-                "macro_summary": macro_summary,
-                "index_trend": {
-                    "S&P 500": sp500_trend,
-                    "Nasdaq": nasdaq_trend
-                },
-                "market_bullish": market_bullish
-            }
+        fundamentals = analyze_fundamentals(ticker)
+        technicals = analyze_technicals(df)
 
-            message = create_signal_message(signal_data)
-            send_discord_message(message)
+        # תנאי חובה פונדומנטליים
+        if not fundamentals["passes"]:
+            continue
 
-        except Exception as e:
-            error_message = f"שגיאה עבור {ticker}: {str(e)}"
-            send_discord_message(error_message, is_error=True)
+        # תנאי טכני - דרושים לפחות 4 איתותים מחזקים
+        strong_signals = technicals.get("strong_signals", 0)
+        if strong_signals < 4:
+            continue
+
+        # הכנת איתות מלא
+        signal = {
+            "ticker": ticker,
+            "direction": technicals.get("trend", "לא זמין"),
+            "order_type": "Market",
+            "entry_price": round(df["Close"].iloc[-1], 2),
+            "stop_loss": round(df["Close"].iloc[-1] * 0.97, 2),
+            "take_profit": round(df["Close"].iloc[-1] * 1.05, 2),
+            "trend_sentiment": technicals.get("trend", "לא זמין"),
+            "zones": technicals.get("zones", {}),
+            "risk_pct": 3,
+            "risk_dollars": 100,
+            "reward_pct": 5,
+            "reward_dollars": 170,
+            "ai_score": technicals.get("ai_score", 0),
+            "confidence_score": technicals.get("confidence", 0),
+            "bot_decision": "המלצה להיכנס לעסקה",
+            "macro_summary": macro_summary,
+            "market_bullish": market_bullish
+        }
+
+        message = create_signal_message(signal)
+        send_discord_message(message)
+        signal_sent = True
+        break
+
+    if not signal_sent:
+        send_discord_message("לא נשלח איתות היום כי לא נמצאה מניה שעומדת בכל התנאים.")
