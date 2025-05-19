@@ -2,7 +2,7 @@
 
 from fundamentals import analyze_fundamentals
 from technicals import analyze_technicals
-from macro import get_macro_summary, is_market_bullish
+from macro import get_macro_summary, is_market_bullish, detect_upcoming_crisis
 from discord_manager import send_discord_message, create_signal_message
 from config import *
 from stock_list import STOCK_LIST
