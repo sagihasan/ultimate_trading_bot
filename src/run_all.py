@@ -6,15 +6,17 @@ from keep_alive import keep_alive
 from scheduler import start_scheduler
 
 if __name__ == "__main__":
-    # שמירת חיבור חי (אם נדרש)
+    # הרצה מתמשכת (שרת Flask)
     keep_alive()
 
-    # התחלת סקדולר (משימות מתוזמנות)
+    # הפעלת Scheduler לזימונים יומיים/שבועיים
     start_scheduler()
 
-    # הרצת הבוט הראשי (איתותים, ניתוחים וכו')
+    # הפעלת בוט מסחר יומית
     run_bot()
 
-    # שליחת דוחות
+    # שליחת דוח חודשי אם היום הראשון בחודש
     send_monthly_report_if_needed()
+
+    # שליחת דוח שבועי אם שבת
     send_weekly_report()
