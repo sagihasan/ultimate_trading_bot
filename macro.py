@@ -1,14 +1,8 @@
 # macro.py
 
 import yfinance as yf
-from investpy import get_macro_events
+from investpy
 from datetime import datetime, timedelta
-
-
-def get_macro_data():
-    today = datetime.now().date()
-    events = get_macro_events(today)
-    return events
 
 
 def get_index_trend(ticker, period="6mo"):
