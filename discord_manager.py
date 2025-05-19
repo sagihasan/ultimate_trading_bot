@@ -38,8 +38,9 @@ def send_error_message(message):
 
 # יצירת הודעת איתות מעוצבת
 def create_signal_message(signal_data):
-    return f"""
-איתות מסחר חכם עבור מניית {signal_data['ticker']}
+    market_state = "שורי (Bullish)" if signal_data.get("market_bullish") else "דובי (Bearish)"
+    
+    message = f"""איתות מסחר חכם עבור מניית {signal_data['ticker']}
 
 ● כיוון: {signal_data['direction']}
 ● סוג פקודה: {signal_data['order_type']}
@@ -47,13 +48,15 @@ def create_signal_message(signal_data):
 ● סטופ לוס: {signal_data['stop_loss']}
 ● טייק פרופיט: {signal_data['take_profit']}
 
-● מגמה טכנית: {signal_data['trend']}
+● מגמה טכנית: {signal_data['trend_sentiment']}
 ● אזור אסטרטגי: {signal_data['zones']}
-● רמת הסיכון: {signal_data['risk_percent']}% ({signal_data['risk_dollars']}$)
-● פוטנציאל רווח: {signal_data['reward_percent']}% ({signal_data['reward_dollars']}$)
+● מצב השוק הכללי: {market_state}
+● רמת הסיכון: {signal_data['risk_pct']}% ({signal_data['risk_dollars']}$)
+● פוטנציאל רווח: {signal_data['reward_pct']}% ({signal_data['reward_dollars']}$)
 
-● אינדיקטור AI: {signal_data['ai_score']}
-● Confidence: {signal_data['confidence']}
+● אינדיקטור AI: {signal_data['ai_score']}%
+● Confidence: {signal_data['confidence_score']}%
 
-הבוט קובע: {signal_data['bot_decision']}
+הבוט קובע: {'להיכנס לעסקה' if signal_data['confidence_score'] > 70 else 'לא להיכנס לעסקה'}
 """
+    return message
