@@ -16,3 +16,4 @@ flask
 joblib
 scikit-learn
 investpy
+apscheduler
