@@ -9,6 +9,15 @@ PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK")
 PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
 ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK")
 
+def create_embed(title, description, color):
+    return {
+        "embeds": [{
+            "title": title,
+            "description": description,
+            "color": color
+        }]
+    }
+
 # שליחת הודעה לדיסקורד
 def send_discord_message(message, is_error=False, is_private=False, file=None):
     try:
