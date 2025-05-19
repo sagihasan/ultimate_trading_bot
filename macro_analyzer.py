@@ -5,7 +5,7 @@ from macro import (
     detect_upcoming_crisis,
     detect_gap_warning_from_macro,
     format_macro_summary,
-    is_market_bullish
+    is_market_bullish, format_macro_summary
 )
 
 def analyze_macro():
