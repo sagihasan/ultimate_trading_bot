@@ -100,14 +100,10 @@ def detect_gap_warning_from_macro(summary):
 
 def format_macro_summary(summary):
     return (
-        f"נתוני מאקרו:"
-"
-        f"מגמת S&P 500: {summary['sp500']['daily']}
-"
-        f"מגמת נאסד"ק: {summary['nasdaq']['daily']}
-"
-        f"מגמת VIX: {summary['vix_trend']['daily']}
-"
-        f"מכפיל רווח S&P 500: {summary['pe_ratio']}
-"
+        f"""נתוני מאקרו:
+מגמת S&P 500: {summary['sp500']['daily']}
+מגמת נאסד״ק: {summary['nasdaq']['daily']}
+מגמת VIX: {summary['vix_trend']['daily']}
+מכפיל רווח S&P 500: {summary['pe_ratio']}
+"""
     )
