@@ -3,7 +3,7 @@
 from fundamentals import analyze_fundamentals
 from technicals import analyze_technicals
 from macro import get_macro_summary, is_market_bullish
-from discord_manager import send_discord_message, create_embed
+from discord_manager import send_public_message, send_error_message
 from config import *
 from stock_list import STOCK_LIST
 import yfinance as yf
@@ -24,13 +24,26 @@ def run_bot():
 
     for symbol in STOCK_LIST:
         try:
-            fundamentals = analyze_fundamentals(symbol)
-            technicals = analyze_technicals(symbol)
-
-            if not fundamentals["pass"] or not technicals["pass"]:
+            stock = yf.Ticker(symbol)
+            df = stock.history(period="6mo")
+            if df.empty:
                 continue
 
-            score = fundamentals["score"] + technicals["score"]
+            fundamentals = analyze_fundamentals(symbol)
+            technicals = analyze_technicals(df)
+
+            score = 0
+            if market_bullish and technicals['trend'] == "עלייה":
+                score += 1
+            if fundamentals['strong']:
+                score += 1
+            if technicals['bb'] > 0.5:
+                score += 1
+            if technicals['ema_9'] > 0.5:
+                score += 1
+            if technicals['zones']['in_golden_zone']:
+                score += 1
+
             if score > selected_score:
                 selected_score = score
                 selected_stock = {
@@ -42,18 +55,20 @@ def run_bot():
 
         except Exception as e:
             print(f"שגיאה בניתוח {symbol}: {e}")
+            send_error_message(f"שגיאה בניתוח {symbol}:\n{e}")
 
     if selected_stock:
-        message = f"**איתות יומי: {selected_stock['symbol']}**\n"
-        message += f"אחוז ניקוד: {selected_stock['score']}/5\n"
-        message += f"מגמת שוק: {'עלייה' if market_bullish else 'ירידה'}\n"
-        message += f"מגמת מניה: {selected_stock['technicals']['trend']}\n"
-        message += f"בולינגר התרחבות: {round(selected_stock['technicals']['bb'], 2)}\n"
+        message = f"**איתות יומי – {selected_stock['symbol']}**\n"
+        message += f"תרחיש כולל: {'חיובי' if market_bullish else 'שלילי'}\n"
+        message += f"ציון כולל: {selected_stock['score']}/5\n"
+        message += f"מגמת שוק: {selected_stock['technicals']['trend']}\n"
+        message += f"מדד בולינגר: {round(selected_stock['technicals']['bb'], 2)}\n"
         message += f"EMA9: {round(selected_stock['technicals']['ema_9'], 2)}\n"
 
         if selected_stock['technicals']['zones']['in_golden_zone']:
             message += "המניה נמצאת ב־Golden Zone\n"
 
-        send_discord_message(message)
+        send_public_message(message)
+
     else:
-        send_discord_message("לא נמצא איתות מתאים היום.")
+        send_public_message("לא נמצא איתות מתאים היום.")
