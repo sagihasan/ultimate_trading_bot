@@ -1,26 +1,27 @@
 # reporting.py
 
 from report_generator import send_monthly_report_to_discord
-from monthly_planner import send_monthly_plan
 from macro_analyzer import analyze_macro_trends
 from trade_manager import analyze_open_trades
+from monthly_planner import send_monthly_plan
 from datetime import datetime
 
 def send_monthly_report_if_needed():
     today = datetime.today()
     if today.day == 1:
-        print(f"שליחת דוח חודשי – היום: {today.strftime('%Y-%m-%d')}")
+        print(f"[דוח חודשי] {today.strftime('%Y-%m-%d')} – שליחת תוכנית ודוח חודשי")
+        send_monthly_plan()
         send_monthly_full_report()
     else:
-        print(f"היום אינו תחילת החודש ({today.strftime('%Y-%m-%d')}) – לא נשלח דוח חודשי")
+        print(f"[דוח חודשי] {today.strftime('%Y-%m-%d')} – לא נשלח (לא היום הראשון בחודש)")
 
 def send_weekly_report():
     today = datetime.today()
     if today.weekday() == 5:  # שבת
-        print(f"שליחת דוח שבועי – היום: {today.strftime('%Y-%m-%d')}")
+        print(f"[דוח שבועי] {today.strftime('%Y-%m-%d')} – שליחה")
         send_weekly_full_report()
     else:
-        print(f"היום אינו שבת ({today.strftime('%Y-%m-%d')}) – לא נשלח דוח שבועי")
+        print(f"[דוח שבועי] {today.strftime('%Y-%m-%d')} – לא נשלח (לא שבת)")
 
 def send_weekly_full_report():
     analyze_macro_trends()
