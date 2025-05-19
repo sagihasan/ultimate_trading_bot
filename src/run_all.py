@@ -6,13 +6,13 @@ from keep_alive import keep_alive
 from scheduler import start_scheduler
 
 if __name__ == "__main__":
-    # הפעלת שרת keep_alive
+    # שמירת חיבור חי (אם נדרש)
     keep_alive()
 
-    # הפעלת Scheduler למשימות שעתיות/יומיות ברקע
+    # התחלת סקדולר (משימות מתוזמנות)
     start_scheduler()
 
-    # הרצת הבוט הראשי (איתותים, ניתוחים, ניהול)
+    # הרצת הבוט הראשי (איתותים, ניתוחים וכו')
     run_bot()
 
     # שליחת דוחות
