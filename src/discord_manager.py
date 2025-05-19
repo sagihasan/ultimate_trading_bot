@@ -7,11 +7,11 @@ def send_public_message(content):
         try:
             response = requests.post(webhook_url, json={"content": content})
             if response.status_code != 204:
-                print(f"שגיאה בשליחה לציבורי: {response.status_code} - {response.text}")
+                print(f"שגיאה בשליחה לציבורי: {response.status_code} {response.text}")
         except Exception as e:
             print(f"שגיאה בשליחה לציבורי: {e}")
     else:
-        print("לא נמצא Webhook ציבורי")
+        print("Webhook ציבורי לא מוגדר")
 
 def send_private_message(content):
     webhook_url = os.getenv("DISCORD_PRIVATE_WEBHOOK")
@@ -19,18 +19,18 @@ def send_private_message(content):
         try:
             response = requests.post(webhook_url, json={"content": content})
             if response.status_code != 204:
-                print(f"שגיאה בשליחה לפרטי: {response.status_code} - {response.text}")
+                print(f"שגיאה בשליחה לפרטי: {response.status_code} {response.text}")
         except Exception as e:
             print(f"שגיאה בשליחה לפרטי: {e}")
     else:
-        print("לא נמצא Webhook פרטי")
+        print("Webhook פרטי לא מוגדר")
 
 def send_error_message(error_msg):
     webhook_url = os.getenv("DISCORD_ERROR_WEBHOOK") or os.getenv("DISCORD_PRIVATE_WEBHOOK")
     bot_name = os.getenv("BOT_NAME", "Trading Bot")
+
     if webhook_url:
-        message = f"**{bot_name} - שגיאת מערכת:**/n"
-        message = f"```{error_msg}```"
+        message = f"**{bot_name} – שגיאת מערכת:**\n```{error_msg}```"
         try:
             response = requests.post(webhook_url, json={"content": message})
             if response.status_code != 204:
