@@ -5,6 +5,14 @@ from macro_analyzer import analyze_macro_trends
 from trade_manager import analyze_open_trades
 from datetime import datetime
 
+def send_monthly_report_if_needed():
+    # בדיקת תאריך או תנאים לדו"ח חודשי
+    print("שליחת דוח חודשי")
+
+def send_weekly_report():
+    # שליחת דוח שבועי (שבת ב-12:00 לדוגמה)
+    print("שליחת דוח שבועי")
+
 def send_weekly_report():
     analyze_macro_trends()
     analyze_open_trades()
