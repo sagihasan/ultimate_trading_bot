@@ -1,6 +1,7 @@
 import pandas as pd
-from ta import momentum, trend, volatility
-import numpy as np
+from ta.momentum import RSIIndicator
+from ta.trend import MACD, EMAIndicator
+from ta.volatility import BollingerBands
 
 def analyze_technicals(df):
     result = {}
@@ -14,22 +15,23 @@ def analyze_technicals(df):
     volume = df["Volume"]
 
     # RSI
-    result["rsi"] = ta.rsi(close, length=14).iloc[-1]
+    rsi = RSIIndicator(close=close, window=14)
+    result["rsi"] = rsi.rsi().iloc[-1]
 
     # MACD
-    macd = ta.macd(close)
-    result["macd"] = macd["MACD_12_26_9"].iloc[-1]
-    result["macd_signal"] = macd["MACDs_12_26_9"].iloc[-1]
+    macd = MACD(close=close)
+    result["macd"] = macd.macd().iloc[-1]
+    result["macd_signal"] = macd.macd_signal().iloc[-1]
 
     # EMA Cross
-    ema_short = ta.ema(close, length=9)
-    ema_long = ta.ema(close, length=20)
+    ema_short = EMAIndicator(close=close, window=9).ema_indicator()
+    ema_long = EMAIndicator(close=close, window=20).ema_indicator()
     result["ema_9"] = ema_short.iloc[-1]
     result["ema_20"] = ema_long.iloc[-1]
     result["ema_cross_up"] = ema_short.iloc[-2] < ema_long.iloc[-2] and ema_short.iloc[-1] > ema_long.iloc[-1]
     result["ema_cross_down"] = ema_short.iloc[-2] > ema_long.iloc[-2] and ema_short.iloc[-1] < ema_long.iloc[-1]
 
-    # Trend: Simple logic using EMA alignment
+    # Trend
     trend = "none"
     if ema_short.iloc[-1] > ema_long.iloc[-1] and close.iloc[-1] > ema_short.iloc[-1]:
         trend = "bullish"
@@ -38,11 +40,11 @@ def analyze_technicals(df):
     result["trend"] = trend
 
     # Bollinger Bands
-    bb = ta.bbands(close, length=20)
-    result["bb_upper"] = bb["BBU_20_2.0"].iloc[-1]
-    result["bb_lower"] = bb["BBL_20_2.0"].iloc[-1]
+    bb = BollingerBands(close=close, window=20, window_dev=2)
+    result["bb_upper"] = bb.bollinger_hband().iloc[-1]
+    result["bb_lower"] = bb.bollinger_lband().iloc[-1]
 
-    # Indicators summary
+    # Indicators Summary
     result["indicators"] = {
         "rsi": round(result["rsi"], 2),
         "macd": round(result["macd"], 2),
@@ -53,7 +55,7 @@ def analyze_technicals(df):
         "bb_lower": round(result["bb_lower"], 2)
     }
 
-    # Zones and sentiment
+    # Zones
     result["zones"] = identify_zones(df)
 
     return result
@@ -73,22 +75,21 @@ def identify_zones(df):
     high = df["High"].rolling(window=60).max().iloc[-1]
     low = df["Low"].rolling(window=60).min().iloc[-1]
     current_price = df["Close"].iloc[-1]
-
-    # Golden Zone (Fibonacci retracement)
     diff = high - low
+
     golden_zone_top = high - diff * 0.618
     golden_zone_bottom = high - diff * 0.786
 
     if golden_zone_bottom <= current_price <= golden_zone_top:
         result["in_golden_zone"] = True
 
-    # Demand Zone – recent low with high volume
+    # Demand zone
     recent_lows = df.iloc[-20:]
     low_volume_zone = recent_lows[recent_lows["Low"] == recent_lows["Low"].min()]
     if not low_volume_zone.empty and low_volume_zone["Volume"].iloc[0] > df["Volume"].mean():
         result["in_demand_zone"] = True
 
-    # Bullish/Bearish based on price vs. 20-period mean
+    # Sentiment
     if current_price > df["Close"].rolling(20).mean().iloc[-1]:
         result["bullish"] = True
     elif current_price < df["Close"].rolling(20).mean().iloc[-1]:
