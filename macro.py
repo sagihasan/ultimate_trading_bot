@@ -91,3 +91,15 @@ def detect_gap_warning_from_macro(summary):
     ):
         return True
     return False
+
+def format_macro_summary(summary):
+    """
+    מחזיר מחרוזת מסכמת של נתוני המאקרו לצורך הדוח
+    """
+    return (
+        f"נתוני מאקרו:\n"
+        f"- מגמת S&P 500: {summary['sp500']['daily']}\n"
+        f"- מגמת נאסד״ק: {summary['nasdaq']['daily']}\n"
+        f"- מגמת VIX: {summary['vix_trend']['daily']}\n"
+        f"- מכפיל רווח S&P 500: {summary['pe_ratio']}\n"
+    )
