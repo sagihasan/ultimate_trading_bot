@@ -3,8 +3,6 @@
 import yfinance as yf
 from datetime import datetime, timedelta
 
-def get_index_trend(ticker, period="6mo"):
-    data = yf.download(ticker, period=period)
 
     if len(data) < 2:
         return "לא זמין"
