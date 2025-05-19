@@ -80,3 +80,14 @@ def detect_upcoming_crisis(events):
         if any(keyword in event.lower() for keyword in crisis_keywords):
             return True
     return False
+
+def detect_gap_warning_from_macro(summary):
+    """
+    מזהה התראה על גאפ קרוב לפי תנודתיות השוק ומגמה כללית
+    """
+    if summary["vix_trend"]["daily"] == "עלייה" and (
+        summary["sp500"]["daily"] == "ירידה" or
+        summary["nasdaq"]["daily"] == "ירידה"
+    ):
+        return True
+    return False
