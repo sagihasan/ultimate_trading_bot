@@ -1,74 +1,74 @@
-# main.py
-
+import os
+import time
+from datetime import datetime
+from config import STOCK_LIST
 from fundamentals import analyze_fundamentals
 from technicals import analyze_technicals
-from macro import get_macro_summary, is_market_bullish
-from discord_manager import send_public_message, send_error_message
-from config import *
-from stock_list import STOCK_LIST
-import yfinance as yf
-import datetime
+from ml_model import evaluate_trade_ai
+from trade_management import manage_open_trades
+from reporting import send_weekly_report_if_needed, send_monthly_report_if_needed
+from macro_alerts import check_macro_alerts
+from pre_market import check_pre_market_alert
+from discord_manager import send_public_message, send_error_message, create_signal_message
+import traceback
 
 def run_bot():
-    now = datetime.datetime.now()
-    signal = {}
+    now = datetime.now()
+    today = now.strftime("%Y-%m-%d")
+    current_time = now.strftime("%H:%M")
 
-    # ניתוח מאקרו
-    macro_summary = get_macro_summary()
-    market_bullish = is_market_bullish(macro_summary)
-    signal["macro_summary"] = macro_summary
-    signal["market_bullish"] = market_bullish
+    try:
+        # שליחת הודעת התחלה (פרטי)
+        from discord_manager import send_private_message
+        send_private_message(f"הבוט התחיל לפעול - {today} {current_time}")
 
-    selected_stock = None
-    selected_score = 0
+        # בדיקת פרה-מרקט בשעה 11:00 בבוקר בלבד
+        if now.hour == 11 and now.minute < 10:
+            for symbol in STOCK_LIST:
+                check_pre_market_alert(symbol)
 
-    for symbol in STOCK_LIST:
-        try:
-            stock = yf.Ticker(symbol)
-            df = stock.history(period="6mo")
-            if df.empty:
-                continue
+        # בדיקת מקרו כל שעה
+        check_macro_alerts()
 
+        # ניתוחים ואיתותים (יומי)
+        for symbol in STOCK_LIST:
             fundamentals = analyze_fundamentals(symbol)
-            technicals = analyze_technicals(df)
+            technicals = analyze_technicals(symbol)
+            ai_result = evaluate_trade_ai(symbol)
 
-            score = 0
-            if market_bullish and technicals['trend'] == "עלייה":
-                score += 1
-            if fundamentals['strong']:
-                score += 1
-            if technicals['bb'] > 0.5:
-                score += 1
-            if technicals['ema_9'] > 0.5:
-                score += 1
-            if technicals['zones']['in_golden_zone']:
-                score += 1
+            if fundamentals and technicals and ai_result:
+                message = create_signal_message(
+                    ticker=symbol,
+                    direction=technicals["trend"],
+                    order_type="Market",
+                    entry_price=technicals["ema_9"],
+                    stop_loss=technicals["ema_20"],
+                    take_profit=technicals["bb_upper"],
+                    trend_sentiment=technicals["trend"],
+                    zones=technicals["zones"],
+                    risk_pct=2,
+                    risk_dollars=20,
+                    reward_pct=4,
+                    reward_dollars=40,
+                    ai_score=ai_result["ai_score"],
+                    confidence_score=ai_result["confidence"]
+                )
+                send_public_message(message)
 
-            if score > selected_score:
-                selected_score = score
-                selected_stock = {
-                    "symbol": symbol,
-                    "fundamentals": fundamentals,
-                    "technicals": technicals,
-                    "score": score
-                }
+        # ניהול עסקאות פתוחות
+        manage_open_trades()
 
-        except Exception as e:
-            print(f"שגיאה בניתוח {symbol}: {e}")
-            send_error_message(f"שגיאה בניתוח {symbol}:\n{e}")
+        # דוחות
+        send_weekly_report_if_needed()
+        send_monthly_report_if_needed()
 
-    if selected_stock:
-        message = f"**איתות יומי – {selected_stock['symbol']}**\n"
-        message += f"תרחיש כולל: {'חיובי' if market_bullish else 'שלילי'}\n"
-        message += f"ציון כולל: {selected_stock['score']}/5\n"
-        message += f"מגמת שוק: {selected_stock['technicals']['trend']}\n"
-        message += f"מדד בולינגר: {round(selected_stock['technicals']['bb'], 2)}\n"
-        message += f"EMA9: {round(selected_stock['technicals']['ema_9'], 2)}\n"
+        # שליחת הודעת סיום (פרטי)
+        send_private_message(f"הבוט סיים את הפעולה - {today} {current_time}")
 
-        if selected_stock['technicals']['zones']['in_golden_zone']:
-            message += "המניה נמצאת ב־Golden Zone\n"
+    except Exception as e:
+        error = traceback.format_exc()
+        send_error_message(f"שגיאה ב-main: {e}
+```{error}```")
 
-        send_public_message(message)
-
-    else:
-        send_public_message("לא נמצא איתות מתאים היום.")
+if __name__ == "__main__":
+    run_bot()
