@@ -3,6 +3,10 @@
 from trade_management import create_trade_entry, log_trade_result, load_open_trades, save_open_trades
 from datetime import datetime
 
+def analyze_open_trades():
+    # כאן הכנס את הלוגיקה לזיהוי עסקאות פתוחות שדורשות ניתוח
+    return []
+
 def evaluate_trade_exit(trade, current_price):
     direction = trade["סוג עסקה"]
     stop_loss = trade["סטופ לוס"]
