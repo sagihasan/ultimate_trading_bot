@@ -17,6 +17,9 @@ def generate_macro_calendar_report():
     # כאן תוכל להוסיף לוגיקה אמיתית בעתיד
     return
 
+def generate_reports():
+    print("Running weekly and monthly reports... (placeholder)")
+
 def generate_cumulative_return_chart():
     if not TRADES_LOG.exists():
         return None
