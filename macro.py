@@ -1,7 +1,6 @@
 # macro.py
 
 import yfinance as yf
-from investpy
 from datetime import datetime, timedelta
 
 
