@@ -100,7 +100,7 @@ def detect_gap_warning_from_macro(summary):
 
 def format_macro_summary(summary):
     return (
-        f"נתוני מאקרו:
+        f"נתוני מאקרו:"
 "
         f"מגמת S&P 500: {summary['sp500']['daily']}
 "
