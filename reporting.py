@@ -1,7 +1,7 @@
 # reporting.py
 
 from report_generator import send_monthly_report_to_discord
-from .macro_analyzer import analyze_macro_trends
+from macro_analyzer import analyze_macro_trends
 from trade_manager import analyze_open_trades
 from datetime import datetime
 
