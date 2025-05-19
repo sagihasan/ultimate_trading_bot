@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 def get_index_trend(ticker, period="6mo"):
     data = yf.download(ticker, period=period)
-
+    
     if len(data) < 2:
         return "לא זמין"
 
@@ -26,26 +26,28 @@ def get_pe_ratio_sp500():
         return "לא זמין"
 
 def get_vix_trend():
-    try:
-        vix_data = yf.download("^VIX", period="6mo")
-        ma_20 = vix_data["Close"].rolling(window=20).mean()
-        if vix_data["Close"].iloc[-1] > ma_20.iloc[-1]:
-            return {"daily": "עלייה"}
-        elif vix_data["Close"].iloc[-1] < ma_20.iloc[-1]:
-            return {"daily": "ירידה"}
-        else:
-            return {"daily": "ניטרלי"}
-    except:
+    data = yf.download("^VIX", period="6mo")
+    
+    if len(data) < 2:
         return {"daily": "לא זמין"}
 
-def get_macro_summary():
-    sp_trend_d = get_index_trend("^GSPC", period="3mo")
-    sp_trend_w = get_index_trend("^GSPC", period="6mo")
-    sp_trend_m = get_index_trend("^GSPC", period="1y")
+    ma_20 = data["Close"].rolling(window=20).mean()
 
-    nasdaq_trend_d = get_index_trend("^IXIC", period="3mo")
-    nasdaq_trend_w = get_index_trend("^IXIC", period="6mo")
-    nasdaq_trend_m = get_index_trend("^IXIC", period="1y")
+    if data["Close"].iloc[-1] > ma_20.iloc[-1]:
+        return {"daily": "עלייה"}
+    elif data["Close"].iloc[-1] < ma_20.iloc[-1]:
+        return {"daily": "ירידה"}
+    else:
+        return {"daily": "ניטרלי"}
+
+def get_macro_summary():
+    sp_trend_d = get_index_trend("^GSPC", period="1mo")
+    sp_trend_w = get_index_trend("^GSPC", period="3mo")
+    sp_trend_m = get_index_trend("^GSPC", period="6mo")
+
+    nasdaq_trend_d = get_index_trend("^IXIC", period="1mo")
+    nasdaq_trend_w = get_index_trend("^IXIC", period="3mo")
+    nasdaq_trend_m = get_index_trend("^IXIC", period="6mo")
 
     pe_ratio = get_pe_ratio_sp500()
     vix = get_vix_trend()
@@ -71,3 +73,10 @@ def is_market_bullish(summary):
         summary["nasdaq"]["daily"] == "עלייה" and
         summary["vix_trend"]["daily"] == "ירידה"
     )
+
+def detect_upcoming_crisis(events):
+    crisis_keywords = ["מיתון", "קריסה", "משבר", "לחץ", "התרסקות"]
+    for event in events:
+        if any(keyword in event.lower() for keyword in crisis_keywords):
+            return True
+    return False
