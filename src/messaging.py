@@ -3,7 +3,7 @@ import requests
 import time
 
 RATE_LIMIT_SECONDS = 1.2
-DISCORD_PUBLIC_WEBHOOK_URL = os.getenv("DISCORD_PUBLIC_WEBHOOK")
+DISCORD_PUBLIC_WEBHOOK = os.getenv("DISCORD_PUBLIC_WEBHOOK")
 
 def send_message(webhook_url, message):
     if not webhook_url:
