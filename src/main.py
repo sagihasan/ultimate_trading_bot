@@ -27,7 +27,7 @@ from discord_manager import (
 )
 
 # פונקציית עזר שמפחיתה את העומס על-Discord (מוגדרת ב-src/utils.py)
-from utils import send_message_with_delay
+from utils import send_message_with_delay, get_current_time, get_current_time_str, log, is_market_open
 
 # ברירת-מחדל 1.2 ש׳ – אפשר לאפס כ-ENV var אם תרצה
 RATE_LIMIT_SECONDS = float(os.getenv("DISCORD_RATE_LIMIT_SECONDS", 1.2))
