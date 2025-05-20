@@ -1,9 +1,7 @@
 import os
 from utils import send_message_with_delay
-from dotenv import load_dotenv
 import requests
 
-load_dotenv()
 # ייבוא קבועים מתוך .env
 DISCORD_PRIVATE_WEBHOOK_URL = os.getenv("DISCORD_PRIVATE_WEBHOOK")
 DISCORD_ERROR_WEBHOOK_URL = os.getenv("DISCORD_ERROR_WEBHOOK")
