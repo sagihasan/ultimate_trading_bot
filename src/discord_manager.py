@@ -1,5 +1,13 @@
 import os
 import requests
+import time
+
+def send_message_with_delay(send_func, content, delay_seconds=2):
+    try:
+        send_func(content)
+        time.sleep(delay_seconds)
+    except Exception as e:
+        print(f"שגיאה בשליחת הודעה בעיכוב: {e}")
 
 def send_public_message(content):
     webhook_url = os.getenv("DISCORD_PUBLIC_WEBHOOK")
