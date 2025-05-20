@@ -6,7 +6,7 @@ import time
 
 RATE_LIMIT_SECONDS = 1.2
 
-def send_message_with_delay(send_function, message, delay=1.2):
+def send_message_with_delay(send_function, message, delay=RATE_LIMIT_SECONDS):
     try:
         send_function(message)
         time.sleep(delay)
