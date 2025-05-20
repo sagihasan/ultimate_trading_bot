@@ -6,6 +6,8 @@ import joblib
 MODEL_PATH = "data/model.pkl"
 DATA_PATH = "data/training_data.csv"
 
+print("התחלתי לאמן את המודל...")
+
 def train_model():
     data = pd.read_csv(DATA_PATH)
     X = data.drop(columns=["success"])
