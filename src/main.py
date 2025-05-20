@@ -20,11 +20,12 @@ from trade_management import (
 
 from reporting       import send_weekly_report_if_needed, send_monthly_report_if_needed
 from discord_manager import (
-    send_public_message,
     send_private_message,
     send_error_message,
     create_signal_message,
 )
+
+from messaging import send_public_message
 
 # פונקציית עזר שמפחיתה את העומס על-Discord (מוגדרת ב-src/utils.py)
 from utils import send_message_with_delay, get_current_time, get_current_time_str, log, is_market_open
