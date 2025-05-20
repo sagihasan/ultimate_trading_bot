@@ -31,8 +31,6 @@ from utils import (
     is_weekend,
     is_market_open,
     current_date,
-    current_time_str,
-    current_date_str,
     short_date,
     log
 )
