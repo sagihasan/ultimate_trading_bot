@@ -20,9 +20,11 @@ from reporting import send_weekly_report_if_needed, send_monthly_report_if_neede
 from discord_manager import (
     send_private_message,
     send_error_message,
-    send_trade_update_message
+    send_trade_update_message,
+    DISCORD_PRIVATE_WEBHOOK,
+    DISCORD_ERROR_WEBHOOK
 )
-from messaging import send_message
+from messaging import send_message, DISCORD_PUBLIC_WEBHOOK
 from utils import (
     send_message_with_delay,
     get_current_time,
