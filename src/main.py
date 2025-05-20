@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 from stock_list import STOCK_LIST
 from fundamentals import analyze_fundamentals
+from after_market import check_after_market_alert
 from technicals import analyze_technicals
 from ml_model import evaluate_trade_ai
 from trade_management import manage_open_trades
