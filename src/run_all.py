@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # שליחת דוחות
     send_monthly_report_if_needed()
-    send_weekly_report()
+    send_weekly_report_if_needed()
 
     # שליחת תוכנית חודשית בתחילת כל חודש
     send_monthly_plan()
