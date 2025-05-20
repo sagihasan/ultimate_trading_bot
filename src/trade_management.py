@@ -38,8 +38,8 @@ def create_trade_entry(symbol, direction, entry_price, stop_loss, take_profit, r
         "סטופ לוס": stop_loss,
         "טייק פרופיט": take_profit,
         "תוצאה": "",
-        "(%) תשואה": "",
-        "אזור מיוחד": zone,
-        "תחזית שוק": market_rating,
+        "תשואה (%)": "",
+        "אזור מועדף": zone,
+        "תחושת שוק": market_rating,
         "סיבה": reason
     }
