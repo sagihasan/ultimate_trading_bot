@@ -1,45 +1,41 @@
-# trade_management.py
-
 import json
+import os
 from datetime import datetime
-from pathlib import Path
+from discord_manager import send_trade_update_message
+from utils import get_current_time
 
-TRADE_LOG_PATH = Path("trade_log.json")
-OPEN_TRADES_PATH = Path("open_trades.json")
+TRADE_LOG_PATH = "data/open_trades.json"
 
 def load_open_trades():
-    if OPEN_TRADES_PATH.exists():
-        with open(OPEN_TRADES_PATH, "r") as f:
+    if os.path.exists(TRADE_LOG_PATH):
+        with open(TRADE_LOG_PATH, "r") as f:
             return json.load(f)
     return []
 
 def save_open_trades(trades):
-    with open(OPEN_TRADES_PATH, "w") as f:
+    with open(TRADE_LOG_PATH, "w") as f:
         json.dump(trades, f, indent=2)
 
-def log_trade_result(trade_result):
-    if TRADE_LOG_PATH.exists():
-        with open(TRADE_LOG_PATH, "r") as f:
-            logs = json.load(f)
-    else:
-        logs = []
+def manage_open_trades():
+    now = get_current_time()
+    trades = load_open_trades()
+    updated_trades = []
 
-    logs.append(trade_result)
+    for trade in trades:
+        entry_price = trade["entry_price"]
+        stop_loss = trade["stop_loss"]
+        take_profit = trade["take_profit"]
+        current_price = trade.get("current_price", entry_price)  # נניח אם אין עדכון
 
-    with open(TRADE_LOG_PATH, "w") as f:
-        json.dump(logs, f, indent=2)
+        message = ""
+        if current_price <= stop_loss:
+            message = f"העסקה על {trade['ticker']} הגיעה לסטופ לוס ({stop_loss}) – מומלץ לצאת."
+        elif current_price >= take_profit:
+            message = f"העסקה על {trade['ticker']} הגיעה לטייק פרופיט ({take_profit}) – מומלץ לסגור רווח."
+        else:
+            updated_trades.append(trade)  # שמור רק את אלו שלא הסתיימו
 
-def create_trade_entry(symbol, direction, entry_price, stop_loss, take_profit, reason, zone, market_rating):
-    return {
-        "תאריך": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "מניה": symbol,
-        "סוג עסקה": direction,
-        "מחיר כניסה": entry_price,
-        "סטופ לוס": stop_loss,
-        "טייק פרופיט": take_profit,
-        "תוצאה": "",
-        "תשואה (%)": "",
-        "אזור מועדף": zone,
-        "תחושת שוק": market_rating,
-        "סיבה": reason
-    }
+        if message:
+            send_trade_update_message(message)
+
+    save_open_trades(updated_trades)
