@@ -1,41 +1,41 @@
 import json
-import os
 from datetime import datetime
-from discord_manager import send_trade_update_message
-from utils import get_current_time
+from pathlib import Path
 
-TRADE_LOG_PATH = "data/open_trades.json"
+TRADE_LOG_PATH = Path("data/trade_log.json")
+OPEN_TRADES_PATH = Path("data/open_trades.json")
 
 def load_open_trades():
-    if os.path.exists(TRADE_LOG_PATH):
-        with open(TRADE_LOG_PATH, "r") as f:
+    if OPEN_TRADES_PATH.exists():
+        with open(OPEN_TRADES_PATH, "r") as f:
             return json.load(f)
     return []
 
 def save_open_trades(trades):
-    with open(TRADE_LOG_PATH, "w") as f:
+    with open(OPEN_TRADES_PATH, "w") as f:
         json.dump(trades, f, indent=2)
 
-def manage_open_trades():
-    now = get_current_time()
-    trades = load_open_trades()
-    updated_trades = []
+def log_trade_result(trade_result):
+    if TRADE_LOG_PATH.exists():
+        with open(TRADE_LOG_PATH, "r") as f:
+            logs = json.load(f)
+    else:
+        logs = []
 
-    for trade in trades:
-        entry_price = trade["entry_price"]
-        stop_loss = trade["stop_loss"]
-        take_profit = trade["take_profit"]
-        current_price = trade.get("current_price", entry_price)  # נניח אם אין עדכון
+    logs.append(trade_result)
 
-        message = ""
-        if current_price <= stop_loss:
-            message = f"העסקה על {trade['ticker']} הגיעה לסטופ לוס ({stop_loss}) – מומלץ לצאת."
-        elif current_price >= take_profit:
-            message = f"העסקה על {trade['ticker']} הגיעה לטייק פרופיט ({take_profit}) – מומלץ לסגור רווח."
-        else:
-            updated_trades.append(trade)  # שמור רק את אלו שלא הסתיימו
+    with open(TRADE_LOG_PATH, "w") as f:
+        json.dump(logs, f, indent=2)
 
-        if message:
-            send_trade_update_message(message)
-
-    save_open_trades(updated_trades)
+def create_trade_entry(symbol, direction, entry_price, stop_loss, take_profit, zone, market_rating, reason):
+    return {
+        "תאריך": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "מניה": symbol,
+        "סוג עסקה": direction,
+        "מחיר כניסה": entry_price,
+        "סטופ לוס": stop_loss,
+        "טייק פרופיט": take_profit,
+        "אזור מועדף": zone,
+        "הערכת שוק": market_rating,
+        "סיבה": reason
+    }
