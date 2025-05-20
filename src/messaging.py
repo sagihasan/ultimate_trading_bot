@@ -1,9 +1,6 @@
 import os
 import requests
 import time
-from dotenv import load_dotenv
-
-load_dotenv()
 
 RATE_LIMIT_SECONDS = 1.2
 DISCORD_PUBLIC_WEBHOOK_URL = os.getenv("DISCORD_PUBLIC_WEBHOOK")
