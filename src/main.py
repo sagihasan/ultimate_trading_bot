@@ -15,6 +15,7 @@ from trade_management import (
     log_trade_result,
     manage_open_trades
 )
+from price_utils import get_current_price
 from reporting import send_weekly_report_if_needed, send_monthly_report_if_needed
 from discord_manager import (
     send_private_message,
