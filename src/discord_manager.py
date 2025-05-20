@@ -2,6 +2,15 @@ import os
 import requests
 import time
 
+def send_trade_update_message(message, delay=1.2):
+    """
+    שולח הודעת עדכון על עסקה לערוץ הדיסקורד הציבורי.
+    """
+    try:
+        send_message_with_delay(send_public_message, message, delay)
+    except Exception as e:
+        print(f"שגיאה בשליחת עדכון העסקה: {e}")
+
 def send_message_with_delay(send_func, content, delay_seconds=2):
     try:
         send_func(content)
