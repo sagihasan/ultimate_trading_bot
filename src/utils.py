@@ -4,6 +4,8 @@ from datetime import datetime
 import pytz
 import time
 
+RATE_LIMIT_SECONDS = 1.2
+
 def send_message_with_delay(send_function, message, delay=1.2):
     try:
         send_function(message)
