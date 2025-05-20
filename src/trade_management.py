@@ -1,56 +1,13 @@
-# trade_management.py
-
-import json
-import pandas as pd
-from datetime import datetime
-from pathlib import Path
-
 from discord_manager import send_trade_update_message
 from utils import get_current_time
-from price_utils import get_current_price  # ודא שיש את הקובץ price_utils.py עם הפונקציה הזו
+from datetime import datetime
+from pathlib import Path
+import json
+import pandas as pd
+from price_utils import get_current_price
 
-TRADE_LOG_PATH = Path("data/trade_log.json")
-OPEN_TRADES_PATH = Path("data/open_trades.json")
 TRADE_MANAGEMENT_LOG = Path("data/trade_management_log.xlsx")
-
-
-def load_open_trades():
-    if OPEN_TRADES_PATH.exists():
-        with open(OPEN_TRADES_PATH, "r") as f:
-            return json.load(f)
-    return []
-
-
-def save_open_trades(trades):
-    with open(OPEN_TRADES_PATH, "w") as f:
-        json.dump(trades, f, indent=2)
-
-
-def log_trade_result(trade_result):
-    if TRADE_LOG_PATH.exists():
-        with open(TRADE_LOG_PATH, "r") as f:
-            logs = json.load(f)
-    else:
-        logs = []
-
-    logs.append(trade_result)
-    with open(TRADE_LOG_PATH, "w") as f:
-        json.dump(logs, f, indent=2)
-
-
-def create_trade_entry(symbol, direction, entry_price, stop_loss, take_profit, zone, market_rating, reason):
-    return {
-        "תאריך": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "מניה": symbol,
-        "סוג עסקה": direction,
-        "מחיר כניסה": entry_price,
-        "סטופ לוס": stop_loss,
-        "טייק פרופיט": take_profit,
-        "אזור": zone,
-        "הערכת שוק": market_rating,
-        "סיבה": reason
-    }
-
+OPEN_TRADES_PATH = Path("data/open_trades.json")
 
 def manage_open_trades():
     try:
@@ -71,7 +28,7 @@ def manage_open_trades():
 
             if direction == "לונג":
                 profit_pct = ((current_price - entry_price) / entry_price) * 100
-            else:  # שורט
+            else:
                 profit_pct = ((entry_price - current_price) / entry_price) * 100
 
             new_stop = round(entry_price, 2)
@@ -107,9 +64,10 @@ def manage_open_trades():
 
         df = pd.DataFrame(updated_logs)
         if TRADE_MANAGEMENT_LOG.exists():
-            existing = pd.read_excel(TRADE_MANAGEMENT_LOG)
+            existing = pd.read_excel(TRADE_MANAGEMENT_LOG, engine='openpyxl')
             df = pd.concat([existing, df], ignore_index=True)
-        df.to_excel(TRADE_MANAGEMENT_LOG, index=False)
+
+        df.to_excel(TRADE_MANAGEMENT_LOG, index=False, engine='openpyxl')
 
     except Exception as e:
         print(f"שגיאה בניהול עסקאות פתוחות: {e}")
