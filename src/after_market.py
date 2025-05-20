@@ -33,7 +33,7 @@ def check_after_market_alert():
         else:
             message += "\nהאפטר מרקט שקט יחסית"
 
-        send_public_message(message)
+        send_message_with_delay(send_public_message, message)
 
     except Exception as e:
         send_error_message(f"שגיאה באפטר מרקט: {e}")
