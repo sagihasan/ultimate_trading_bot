@@ -23,7 +23,7 @@ def check_pre_market_alert(ticker):
 המניה **{ticker}** ב{direction} של {round(change_pct, 2)}%
 הבוט מזהה שינוי חד לפני פתיחת המסחר – נא להיערך בהתאם
 """
-            send_public_message(message)
+            send_message_with_delay(send_public_message, message)
 
     except Exception as e:
         send_error_message(f"שגיאה בפרה־מרקט ({ticker}): {e}")
