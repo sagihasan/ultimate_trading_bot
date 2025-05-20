@@ -4,54 +4,48 @@ from dotenv import load_dotenv
 import requests
 
 load_dotenv()
+# ייבוא קבועים מתוך .env
+DISCORD_PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
+DISCORD_ERROR_WEBHOOK_URL = os.getenv("DISCORD_ERROR_WEBHOOK_URL")
 
-# קצב שליחה – שיהיה לפחות 1.2 שניות בין כל הודעה
+# הגדרת הגבלת קצב לשליחת הודעות
 RATE_LIMIT_SECONDS = 1.2
 
-# Webhook ציבורי ודיסקרטי
-DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-DISCORD_PRIVATE_WEBHOOK_URL = os.getenv("DISCORD_PRIVATE_WEBHOOK_URL")
+def send_message_with_delay(send_func, message, delay=RATE_LIMIT_SECONDS):
+    time.sleep(delay)
+    send_func(message)
 
-
-def send_public_message(message):
+def send_private_message(message, delay=RATE_LIMIT_SECONDS):
     """
-    שליחת הודעה לערוץ הציבורי בדיסקורד.
+    שולח הודעה לערוץ דיסקורד פרטי (למשל עבור עדכונים אישיים).
     """
-    if not DISCORD_WEBHOOK_URL:
-        print("שגיאה: DISCORD_WEBHOOK_URL לא הוגדר.")
-        return
     try:
-        requests.post(DISCORD_WEBHOOK_URL, json={"content": message})
-    except Exception as e:
-        print(f"שגיאה בשליחת הודעה ציבורית: {e}")
-
-
-def send_private_message(message):
-    """
-    שליחת הודעה לערוץ הפרטי בדיסקורד.
-    """
-    if not DISCORD_PRIVATE_WEBHOOK_URL:
-        print("שגיאה: DISCORD_PRIVATE_WEBHOOK_URL לא הוגדר.")
-        return
-    try:
-        requests.post(DISCORD_PRIVATE_WEBHOOK_URL, json={"content": message})
+        if DISCORD_PRIVATE_WEBHOOK:
+            payload = {"content": message}
+            response = requests.post(DISCORD_PRIVATE_WEBHOOK, json=payload)
+            if response.status_code != 204:
+                print(f"שגיאה בשליחת הודעה פרטית: {response.status_code} {response.text}")
     except Exception as e:
         print(f"שגיאה בשליחת הודעה פרטית: {e}")
 
-
-def send_error_message(message):
+def send_error_message(error_message, delay=RATE_LIMIT_SECONDS):
     """
-    שליחת הודעת שגיאה לערוץ הפרטי בדיסקורד.
+    שולח הודעת שגיאה לערוץ דיסקורד ייעודי לשגיאות.
     """
-    error_message = f"שגיאה בבוט:\n{message}"
-    send_private_message(error_message)
-
+    try:
+        if DISCORD_ERROR_WEBHOOK_URL:
+            payload = {"content": f"**שגיאת בוט:**\n{error_message}"}
+            response = requests.post(DISCORD_ERROR_WEBHOOK_URL, json=payload)
+            if response.status_code != 204:
+                print(f"שגיאה בשליחת הודעת שגיאה: {response.status_code} {response.text}")
+    except Exception as e:
+        print(f"שגיאה בשליחת הודעת שגיאה: {e}")
 
 def send_trade_update_message(message, delay=RATE_LIMIT_SECONDS):
     """
-    שולח הודעת עדכון על עסקה לערוץ הדיסקורד הציבורי.
+    שולח הודעת עדכון על עסקה לערוץ הפרטי.
     """
     try:
-        send_message_with_delay(send_public_message, message, delay)
+        send_message_with_delay(send_private_message, message, delay)
     except Exception as e:
         print(f"שגיאה בשליחת עדכון העסקה: {e}")
