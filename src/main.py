@@ -22,7 +22,7 @@ from discord_manager import (
     send_error_message,
     send_trade_update_message
 )
-from messaging import send_public_message
+from messaging import send_message
 from utils import (
     send_message_with_delay,
     get_current_time,
