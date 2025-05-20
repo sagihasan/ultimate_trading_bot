@@ -24,7 +24,7 @@ def calculate_ai_score(features_dict):
         }
 
 # הגדרות נתיב
-MODEL_PATH = "./model.pkl"
+MODEL_PATH = "data/model.pkl"
 DATA_PATH = "data/training_data.csv"
 
 # אימון המודל ML
