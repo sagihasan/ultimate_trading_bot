@@ -67,8 +67,7 @@ def run_bot():
 
     except Exception as e:
         error = traceback.format_exc()
-        send_error_message(f"שגיאה ב-main: {e}
-```{error}```")
-
+        message = f"שגיאה ב-main:\n```{error}```"
+send_error_message(message)
 if __name__ == "__main__":
     run_bot()
