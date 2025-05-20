@@ -53,7 +53,7 @@ def train_model():
         print(f"המודל נשמר ב־ {MODEL_PATH}")
 
     except Exception as e:
-        print(f"שגיאה באימון המודל: {e}")
+        print(f"\n\n[שגיאת מודל]: {str(e)}\n\n")
 
     if __name__ == "__main__":
         train_model()
