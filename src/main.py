@@ -5,7 +5,7 @@ from stock_list import STOCK_LIST
 from fundamentals import analyze_fundamentals
 from after_market import check_after_market_alert
 from technicals import analyze_technicals
-from ml_model import evaluate_trade_ai
+from ml_model import calculate_ai_score
 from trade_management import manage_open_trades
 from reporting import send_weekly_report_if_needed, send_monthly_report_if_needed
 from macro_alerts import check_macro_alerts
