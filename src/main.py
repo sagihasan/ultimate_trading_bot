@@ -52,7 +52,7 @@ def run_bot():
                     "ai_score": ai_result["ai_score"],
                     "confidence_score": ai_result["confidence"]
                 })
-                send_public_message(message)
+                send_message_with_delay(send_public_message, message)
 
         # ניהול עסקאות פתוחות
         manage_open_trades()
