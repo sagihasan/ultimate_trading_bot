@@ -86,6 +86,7 @@ def manage_open_trades():
 {recommendation}"""
 
             send_trade_update_message(message)
+            send_message_with_delay(send_public_message, message, delay=RATE_LIMIT_SECONDS)
 
             updated_logs.append({
                 "תאריך": get_current_time().strftime("%Y-%m-%d %H:%M"),
