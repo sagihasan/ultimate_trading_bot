@@ -2,9 +2,6 @@ import os
 import time
 import traceback
 from datetime import datetime
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from stock_list import STOCK_LIST
 from fundamentals import analyze_fundamentals
