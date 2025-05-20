@@ -13,6 +13,9 @@ def send_message_with_delay(send_function, message, delay=1.2):
 
 TIMEZONE = "Asia/Jerusalem"
 
+def get_current_time_str():
+    return get_current_time().strftime("%H:%M")
+
 def get_current_time():
     return datetime.now(pytz.timezone(TIMEZONE))
 
