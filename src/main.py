@@ -78,7 +78,7 @@ def run_bot():
                     f"ניקוד AI: {ai_result['ai_score']}\n"
                     f"רמת ביטחון: {ai_result['confidence']}"
                 )
-                send_message_with_delay(send_public_message, message_text)
+                send_message_with_delay(send_public_message, message)
 
         manage_open_trades()
         send_weekly_report_if_needed()
