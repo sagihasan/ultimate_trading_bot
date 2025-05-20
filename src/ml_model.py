@@ -50,6 +50,7 @@ def train_model():
 
         # שמירת המודל
         joblib.dump(model, MODEL_PATH)
+        print(f"המודל נשמר ב־ {MODEL_PATH}")
 
     except Exception as e:
         print(f"שגיאה באימון המודל: {e}")
