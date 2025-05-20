@@ -10,7 +10,7 @@ from trade_management import create_trade_entry, log_trade_result, load_open_tra
 from reporting import send_weekly_report_if_needed, send_monthly_report_if_needed
 from macro_alerts import check_macro_alerts
 from pre_market import check_pre_market_alert
-from discord_manager import send_public_message, send_error_message, create_signal_message
+from discord_manager import send_public_message, send_error_message, create_signal_message, send_private_message
 import traceback
 
 def run_bot():
@@ -20,40 +20,38 @@ def run_bot():
 
     try:
         # שליחת הודעת התחלה (פרטי)
-        from discord_manager import send_private_message
         send_private_message(f"הבוט התחיל לפעול - {today} {current_time}")
 
-        # בדיקת פרה-מרקט בשעה 11:00 בבוקר בלבד
+        # בדיקת פרה-מרקט בשעה 11:00 בדיוק
         if now.hour == 11 and now.minute < 10:
             for symbol in STOCK_LIST:
                 check_pre_market_alert(symbol)
 
-        # בדיקת מקרו כל שעה
+        # בדיקת מאקרו כללית
         check_macro_alerts()
 
-        # ניתוחים ואיתותים (יומי)
         for symbol in STOCK_LIST:
             fundamentals = analyze_fundamentals(symbol)
             technicals = analyze_technicals(symbol)
-            ai_result = evaluate_trade_ai(symbol)
+            ai_result = calculate_ai_score(symbol)
 
             if fundamentals and technicals and ai_result:
-                message = create_signal_message(
-                    ticker=symbol,
-                    direction=technicals["trend"],
-                    order_type="Market",
-                    entry_price=technicals["ema_9"],
-                    stop_loss=technicals["ema_20"],
-                    take_profit=technicals["bb_upper"],
-                    trend_sentiment=technicals["trend"],
-                    zones=technicals["zones"],
-                    risk_pct=2,
-                    risk_dollars=20,
-                    reward_pct=4,
-                    reward_dollars=40,
-                    ai_score=ai_result["ai_score"],
-                    confidence_score=ai_result["confidence"]
-                )
+                message = create_signal_message({
+                    "ticker": symbol,
+                    "trend": technicals["trend"],
+                    "entry_type": "Market",
+                    "entry_price": technicals["ema_9"],
+                    "stop_loss": technicals["ema_20"],
+                    "take_profit": technicals["bb_upper"],
+                    "trend_sentiment": technicals["trend"],
+                    "zones": technicals["zones"],
+                    "risk_pct": 2,
+                    "risk_dollars": 20,
+                    "reward_pct": 4,
+                    "reward_dollars": 40,
+                    "ai_score": ai_result["ai_score"],
+                    "confidence_score": ai_result["confidence"]
+                })
                 send_public_message(message)
 
         # ניהול עסקאות פתוחות
@@ -68,7 +66,8 @@ def run_bot():
 
     except Exception as e:
         error = traceback.format_exc()
-        message = f"שגיאה ב-main:\n```{error}```"
-send_error_message(message)
+        message = f"שגיאה-main:\n```{error}```"
+        send_error_message(message)
+
 if __name__ == "__main__":
     run_bot()
