@@ -54,3 +54,6 @@ def train_model():
 
     except Exception as e:
         print(f"שגיאה באימון המודל: {e}")
+
+if __name__ == "__main__":
+    train_model()
