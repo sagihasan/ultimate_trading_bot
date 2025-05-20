@@ -4,6 +4,25 @@ from sklearn.metrics import accuracy_score
 import joblib
 import pandas as pd
 
+def calculate_ai_score(features_dict):
+    try:
+        model = joblib.load(MODEL_PATH)
+        df = pd.DataFrame([features_dict])
+        prediction = model.predict(df)[0]
+        proba = model.predict_proba(df)[0][1]
+        return {
+            "ai_score": float(proba),
+            "confidence": round(proba, 2),
+            "prediction": int(prediction)
+        }
+    except Exception as e:
+        return {
+            "ai_score": 0.0,
+            "confidence": 0.0,
+            "prediction": 0,
+            "error": str(e)
+        }
+
 # הגדרות נתיב
 MODEL_PATH = "data/model.pkl"
 DATA_PATH = "data/training_data.csv"
