@@ -15,7 +15,7 @@ from ml_model        import calculate_ai_score
 from trade_management import (
     create_trade_entry,
     log_trade_result,
-    manage_open_trades,
+    manage_open_trades
 )
 
 from reporting       import send_weekly_report_if_needed, send_monthly_report_if_needed
