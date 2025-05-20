@@ -25,7 +25,7 @@ def check_macro_alerts():
 דרגת השפעה: {e['impact']}
 הבוט ממליץ להיות דרוך – ייתכן תנודתיות בשוק
 """
-            send_public_message(msg)
+            send_message_with_delay(send_public_message, message)
 
     except Exception as e:
         send_error_message(f"שגיאה בבדיקת מקרו: {e}")
