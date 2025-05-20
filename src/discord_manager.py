@@ -7,9 +7,9 @@ def send_public_message(content):
         try:
             response = requests.post(webhook_url, json={"content": content})
             if response.status_code != 204:
-                print(f"שגיאה בשליחה לציבורי: {response.status_code} {response.text}")
+                print(f"שגיאה בשליחת הודעה ציבורית: {response.status_code} {response.text}")
         except Exception as e:
-            print(f"שגיאה בשליחה לציבורי: {e}")
+            print(f"שגיאה בשליחת הודעה ציבורית: {e}")
     else:
         print("Webhook ציבורי לא מוגדר")
 
@@ -19,9 +19,9 @@ def send_private_message(content):
         try:
             response = requests.post(webhook_url, json={"content": content})
             if response.status_code != 204:
-                print(f"שגיאה בשליחה לפרטי: {response.status_code} {response.text}")
+                print(f"שגיאה בשליחת הודעה פרטית: {response.status_code} {response.text}")
         except Exception as e:
-            print(f"שגיאה בשליחה לפרטי: {e}")
+            print(f"שגיאה בשליחת הודעה פרטית: {e}")
     else:
         print("Webhook פרטי לא מוגדר")
 
@@ -30,12 +30,19 @@ def send_error_message(error_msg):
     bot_name = os.getenv("BOT_NAME", "Trading Bot")
 
     if webhook_url:
-        message = f"**{bot_name} – שגיאת מערכת:**\n```{error_msg}```"
+        message = f"**שגיאת מערכת – {bot_name}:**\n```{error_msg}```"
         try:
             response = requests.post(webhook_url, json={"content": message})
             if response.status_code != 204:
                 print(f"שגיאה בשליחת הודעת שגיאה: {response.status_code}")
         except Exception as e:
-            print(f"שגיאה בשליחת שגיאה: {e}")
+            print(f"שגיאה בשליחת הודעת שגיאה: {e}")
     else:
-        print("Webhook שגיאות לא מוגדר")
+        print("Webhook לשגיאות לא מוגדר")
+
+def create_signal_message(**kwargs):
+    # פונקציה ליצירת הודעת איתות – מותאם לפי ערכים
+    message = "**איתות חדש לזמן אמת:**\n"
+    for key, value in kwargs.items():
+        message += f"{key}: {value}\n"
+    return message
