@@ -1,4 +1,4 @@
-import os
+]רimport os
 import time
 import traceback
 from datetime import datetime
@@ -36,6 +36,10 @@ from utils import (
     short_date,
     log
 )
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def run_bot():
     now = datetime.now()
     today = now.strftime("%Y-%m-%d")
