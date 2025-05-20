@@ -1,7 +1,8 @@
 import os
 import yfinance as yf
 from datetime import datetime, timedelta
-from discord_manager import send_public_message, send_error_message
+from discord_manager import send_error_message
+from messaging import send_public_message
 
 def check_pre_market_alert(ticker):
     try:
