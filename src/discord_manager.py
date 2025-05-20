@@ -1,6 +1,8 @@
 import os
 import requests
 import time
+from utils import send_message_with_delay
+from discord_manager import send_public_message  # רק אם send_public_message נמצאת בקובץ אחר
 
 def send_trade_update_message(message, delay=1.2):
     """
