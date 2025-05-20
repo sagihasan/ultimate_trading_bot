@@ -1,7 +1,7 @@
 import os
 import time
 from datetime import datetime
-from config import STOCK_LIST
+from stock_list import STOCK_LIST
 from fundamentals import analyze_fundamentals
 from technicals import analyze_technicals
 from ml_model import evaluate_trade_ai
