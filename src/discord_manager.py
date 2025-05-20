@@ -5,8 +5,8 @@ import requests
 
 load_dotenv()
 # ייבוא קבועים מתוך .env
-DISCORD_PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
-DISCORD_ERROR_WEBHOOK_URL = os.getenv("DISCORD_ERROR_WEBHOOK_URL")
+DISCORD_PRIVATE_WEBHOOK_URL = os.getenv("DISCORD_PRIVATE_WEBHOOK")
+DISCORD_ERROR_WEBHOOK_URL = os.getenv("DISCORD_ERROR_WEBHOOK")
 
 # הגדרת הגבלת קצב לשליחת הודעות
 RATE_LIMIT_SECONDS = 1.2
