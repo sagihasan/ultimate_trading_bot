@@ -3,8 +3,8 @@ from utils import send_message_with_delay
 import requests
 
 # ייבוא קבועים מתוך .env
-DISCORD_PRIVATE_WEBHOOK_URL = os.getenv("DISCORD_PRIVATE_WEBHOOK")
-DISCORD_ERROR_WEBHOOK_URL = os.getenv("DISCORD_ERROR_WEBHOOK")
+DISCORD_PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
+DISCORD_ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK")
 
 # הגדרת הגבלת קצב לשליחת הודעות
 RATE_LIMIT_SECONDS = 1.2
