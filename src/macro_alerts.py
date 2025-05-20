@@ -1,7 +1,8 @@
 import os
 import requests
 from datetime import datetime, timedelta
-from discord_manager import send_public_message, send_error_message
+from discord_manager import send_error_message
+from messaging import send_message
 
 def check_macro_alerts():
     try:
