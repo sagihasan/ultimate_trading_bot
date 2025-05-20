@@ -1,95 +1,84 @@
-# src/main.py
 import os
 import time
 import traceback
 from datetime import datetime
 
-from stock_list      import STOCK_LIST
-from fundamentals    import analyze_fundamentals
-from technicals      import analyze_technicals
-from after_market    import check_after_market_alert      #  ❱  אפשרי להפעלה בלילה
-from pre_market      import check_pre_market_alert        #  ❱  אפשרי להפעלה בבוקר
-from macro_alerts    import check_macro_alerts
-from ml_model        import calculate_ai_score
-
+from stock_list import STOCK_LIST
+from fundamentals import analyze_fundamentals
+from technicals import analyze_technicals
+from after_market import check_after_market_alert
+from pre_market import check_pre_market_alert
+from macro_alerts import check_macro_alerts
+from ml_model import calculate_ai_score
 from trade_management import (
     create_trade_entry,
     log_trade_result,
     manage_open_trades
 )
-
-from reporting       import send_weekly_report_if_needed, send_monthly_report_if_needed
+from reporting import send_weekly_report_if_needed, send_monthly_report_if_needed
 from discord_manager import (
     send_private_message,
     send_error_message,
-    create_signal_message,
+    send_public_message,
+    send_trade_update_message
 )
+from utils import get_current_time, send_message_with_delay
 
-from messaging import send_public_message
-
-# פונקציית עזר שמפחיתה את העומס על-Discord (מוגדרת ב-src/utils.py)
-from utils import send_message_with_delay, get_current_time, get_current_time_str, log, is_market_open
-
-# ברירת-מחדל 1.2 ש׳ – אפשר לאפס כ-ENV var אם תרצה
-RATE_LIMIT_SECONDS = float(os.getenv("DISCORD_RATE_LIMIT_SECONDS", 1.2))
-
-
-def run_bot() -> None:
-    """לולאת הסריקה הראשית של הבוט."""
+def run_bot():
     now = datetime.now()
-    today_str   = now.strftime("%Y-%m-%d")
-    time_str    = now.strftime("%H:%M")
+    today = now.strftime("%Y-%m-%d")
+    current_time = now.strftime("%H:%M")
 
     try:
-        # ---------- בדיקות מאקרו כלליות ----------
+        send_private_message(f"הבוט התחיל לפעול - {today} {current_time}")
+
+        if current_time == "11:00":
+            check_macro_alerts()
+
         check_macro_alerts()
 
-        # ---------- סריקה לפי מניה ----------
         for symbol in STOCK_LIST:
             fundamentals = analyze_fundamentals(symbol)
-            technicals   = analyze_technicals(symbol)
-            ai_result    = calculate_ai_score(symbol)      # ⬅ קריאת המודל
+            technicals = analyze_technicals(symbol)
+            ai_result = calculate_ai_score(symbol)
 
             if fundamentals and technicals and ai_result:
-                # בניית ההודעה בתבנית אחידה
-                message = create_signal_message({
-                    "ticker"           : symbol,
-                    "trend"            : technicals["trend"],
-                    "entry_type"       : "Market",
-                    "entry_price"      : technicals["ema_9"],
-                    "stop_loss"        : technicals["ema_20"],
-                    "take_profit"      : technicals["bb_upper"],
-                    "trend_sentiment"  : technicals["trend"],
-                    "zones"            : technicals["zones"],
-                    "risk_pct"         : 2,
-                    "risk_dollars"     : 20,
-                    "reward_pct"       : 4,
-                    "reward_dollars"   : 40,
-                    "ai_score"         : ai_result["ai_score"],
-                    "confidence_score" : ai_result["confidence"],
-                })
-
-                # שליחה בפערי זמן קבועים כדי לא לקבל 429
-                send_message_with_delay(
-                    send_public_message,
-                    message,
-                    RATE_LIMIT_SECONDS
+                message = create_trade_entry(
+                    symbol=symbol,
+                    direction=technicals["trend"],
+                    entry_price=technicals["ema_9"],
+                    stop_loss=technicals["ema_20"],
+                    take_profit=technicals["bb_upper"],
+                    reason="AI + טכני + פונדומנטלי",
+                    market_rating=technicals["trend"],
+                    zone=technicals["zones"]
                 )
+                message_text = (
+                    f"איתות עסקה:\n"
+                    f"מניה: {symbol}\n"
+                    f"מגמה: {technicals['trend']}\n"
+                    f"כניסה: Market\n"
+                    f"מחיר כניסה: {technicals['ema_9']}\n"
+                    f"סטופ לוס: {technicals['ema_20']}\n"
+                    f"טייק פרופיט: {technicals['bb_upper']}\n"
+                    f"סנטימנט מגמה: {technicals['trend']}\n"
+                    f"אזור טכני: {technicals['zones']}\n"
+                    f"סיכון: 2%\n"
+                    f"רווח צפוי: 4%\n"
+                    f"ניקוד AI: {ai_result['ai_score']}\n"
+                    f"רמת ביטחון: {ai_result['confidence']}"
+                )
+                send_message_with_delay(send_public_message, message_text)
 
-        # ---------- ניהול פוזיציות פתוחות ----------
         manage_open_trades()
-
-        # ---------- דוחות ----------
         send_weekly_report_if_needed()
         send_monthly_report_if_needed()
-
-        # אפשר לשלוח הודעת סיום פרטית אם תרצה:
-        # send_private_message(f"הבוט סיים את הפעולה - {today_str} {time_str}")
+        send_private_message(f"הבוט סיים את הפעולה - {today} {current_time}")
 
     except Exception as e:
-        err_txt = traceback.format_exc()
-        send_error_message(f"```\nשגיאה ב-main:\n{err_txt}\n```")
-
+        error = traceback.format_exc()
+        message = f"שגיאה בבוט main:\n{error}"
+        send_error_message(message)
 
 if __name__ == "__main__":
     run_bot()
