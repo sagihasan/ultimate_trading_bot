@@ -1,49 +1,15 @@
-import os
-from utils import send_message_with_delay
-import requests
+from src.messaging import send_message
+from src.env_loader import (
+    DISCORD_PUBLIC_WEBHOOK_URL,
+    DISCORD_PRIVATE_WEBHOOK_URL,
+    DISCORD_ERRORS_WEBHOOK_URL
+)
 
-# ייבוא קבועים מתוך .env
-DISCORD_PRIVATE_WEBHOOK = os.getenv("DISCORD_PRIVATE_WEBHOOK")
-DISCORD_ERROR_WEBHOOK = os.getenv("DISCORD_ERROR_WEBHOOK")
+def send_public_message(message):
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
 
-# הגדרת הגבלת קצב לשליחת הודעות
-RATE_LIMIT_SECONDS = 1.2
+def send_private_message(message):
+    send_message(DISCORD_PRIVATE_WEBHOOK_URL, message)
 
-def send_message_with_delay(send_func, message, delay=RATE_LIMIT_SECONDS):
-    time.sleep(delay)
-    send_func(message)
-
-def send_private_message(message, delay=RATE_LIMIT_SECONDS):
-    """
-    שולח הודעה לערוץ דיסקורד פרטי (למשל עבור עדכונים אישיים).
-    """
-    try:
-        if DISCORD_PRIVATE_WEBHOOK:
-            payload = {"content": message}
-            response = requests.post(DISCORD_PRIVATE_WEBHOOK, json=payload)
-            if response.status_code != 204:
-                print(f"שגיאה בשליחת הודעה פרטית: {response.status_code} {response.text}")
-    except Exception as e:
-        print(f"שגיאה בשליחת הודעה פרטית: {e}")
-
-def send_error_message(error_message, delay=RATE_LIMIT_SECONDS):
-    """
-    שולח הודעת שגיאה לערוץ דיסקורד ייעודי לשגיאות.
-    """
-    try:
-        if DISCORD_ERROR_WEBHOOK_URL:
-            payload = {"content": f"**שגיאת בוט:**\n{error_message}"}
-            response = requests.post(DISCORD_ERROR_WEBHOOK_URL, json=payload)
-            if response.status_code != 204:
-                print(f"שגיאה בשליחת הודעת שגיאה: {response.status_code} {response.text}")
-    except Exception as e:
-        print(f"שגיאה בשליחת הודעת שגיאה: {e}")
-
-def send_trade_update_message(message, delay=RATE_LIMIT_SECONDS):
-    """
-    שולח הודעת עדכון על עסקה לערוץ הפרטי.
-    """
-    try:
-        send_message_with_delay(send_private_message, message, delay)
-    except Exception as e:
-        print(f"שגיאה בשליחת עדכון העסקה: {e}")
+def send_error_message(message):
+    send_message(DISCORD_ERRORS_WEBHOOK_URL, f"[שגיאת בוט] {message}")
