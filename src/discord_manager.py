@@ -1,4 +1,4 @@
-from src.messaging import send_message
+from messaging import send_message
 from src.env_loader import (
     DISCORD_PUBLIC_WEBHOOK_URL,
     DISCORD_PRIVATE_WEBHOOK_URL,
