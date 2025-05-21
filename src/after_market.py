@@ -1,7 +1,7 @@
 import yfinance as yf
 from datetime import datetime
 from discord_manager import send_error_message
-from messaging import send_public_message
+from discord_manager import send_public_message
 
 def check_after_market_alert():
     now = datetime.now()
