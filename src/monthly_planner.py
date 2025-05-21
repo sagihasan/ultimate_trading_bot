@@ -1,12 +1,3 @@
-from src.env_loader import (
-    DISCORD_PUBLIC_WEBHOOK_URL,
-    DISCORD_PRIVATE_WEBHOOK_URL,
-    DISCORD_ERRORS_WEBHOOK_URL
-)
-
-# monthly_planner.py
-
-import os
 from datetime import datetime
 from discord_manager import send_private_message
 
@@ -14,30 +5,27 @@ def send_monthly_plan():
     today = datetime.today()
     if today.day != 1:
         return
-
+    
     try:
-    except ValueError:
-        account_size = 1000
-        monthly_target_pct = 5
+        # נתונים לצורך החישוב
+        account_size = 1000  # תוכל לשנות בהתאם
+        monthly_target_pct = 5  # יעד רווח חודשי באחוזים
+        target_profit = round(account_size * (monthly_target_pct / 100))
+        tax_estimate = round(target_profit * 0.25, 2)  # נניח מס 25%
+        after_tax_profit = round(target_profit - tax_estimate, 2)
 
-    target_profit = round(account_size * (monthly_target_pct / 100), 2)
-    tax_estimate = round(target_profit * 0.25, 2)
-    after_tax_profit = round(target_profit - tax_estimate, 2)
+        # שליחת הודעה חכמה לדיסקורד
+        message = (
+            f"**דו\"ח יעד חודשי – {today.strftime('%B %Y')}**\n"
+            f"• גודל תיק: ${account_size}\n"
+            f"• יעד רווח חודשי: {monthly_target_pct}% = ${target_profit}\n"
+            f"• הערכת מס: ${tax_estimate}\n"
+            f"• רווח צפוי לאחר מס: ${after_tax_profit}"
+        )
+        send_private_message(message)
 
-    message = f"""**תוכנית חודשית – {today.strftime('%B %Y')}**
+    except Exception as e:
+        send_private_message(f"שגיאה בחישוב יעד חודשי: {str(e)}")
 
-• גודל תיק: ${account_size}
-• יעד רווח לחודש: ${target_profit} ({monthly_target_pct}%)
-• הערכת מיסוי: ${tax_estimate}
-• רווח אחרי מס: ${after_tax_profit}
-
-מטרות חודשיות:
-• כמות עסקאות מוצלחת: 15–25
-• דגש אסטרטגי: כניסה באזורים אסטרטגיים (Demand Zone / Golden Zone)
-• איתור מניות בתמחור הוגן ב־Buffett Zone
-• ניהול סיכונים: תכנון מראש לפי גודל תיק
-
-והבוט מוכן לחודש חדש – בהצלחה!
-"""
-
-    send_private_message(message.strip())
+if __name__ == "__main__":
+    send_monthly_plan()
