@@ -13,3 +13,6 @@ def send_private_message(message):
 
 def send_error_message(message):
     send_message(DISCORD_ERRORS_WEBHOOK_URL, f"[שגיאת בוט] {message}")
+
+def send_trade_update_message(message):
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, f"[עדכון עסקה] {message}")
