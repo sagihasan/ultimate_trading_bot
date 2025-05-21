@@ -38,7 +38,7 @@ from utils import (
     short_date,
     log
 )
-
+from monthly_planner import send_monthly_plan
 
 def run_bot():
     now = datetime.now()
