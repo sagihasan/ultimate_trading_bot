@@ -9,6 +9,11 @@ from src.scheduler_loop import daily_schedule_loop
 import threading
 
 if __name__ == "__main__":
+    # הפעלת שליחת ההודעות הקבועות ב־11:00 ו־02:10
+    threading.Thread(target=daily_schedule_loop, daemon=True).start()
+
+    # הפעלת הבוט כרגיל
+    run_bot()
     # הפעלת keep alive
     keep_alive()
 
