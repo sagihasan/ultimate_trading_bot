@@ -70,7 +70,7 @@ STOCK_LIST = [
     "TTWO",
     "ATVI",
     "EA",
-    "INTUIT",
+    "INTU",
     "ABNB",
     "LYFT",
     "WBD",
