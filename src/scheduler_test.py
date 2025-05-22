@@ -1,4 +1,4 @@
-from src.discord_manager import send_private_message
+from discord_manager import send_private_message
 from datetime import datetime
 
 def simulate_start_and_end():
