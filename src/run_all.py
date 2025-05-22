@@ -5,7 +5,8 @@ from reporting import send_monthly_report_if_needed, send_weekly_report_if_neede
 from keep_alive import keep_alive
 from scheduler import start_scheduler
 from monthly_planner import send_monthly_plan
-from scheduler_loop import daily_schedule_loop
+from src.scheduler_loop import daily_schedule_loop
+import threading
 
 if __name__ == "__main__":
     # הפעלת keep alive
