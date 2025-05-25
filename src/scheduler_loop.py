@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.discord_manager import send_private_message
+from discord_manager import send_private_message
 import time
 
 # הגדרות שעות שליחה (שעון ישראל)
