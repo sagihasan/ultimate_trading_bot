@@ -1,4 +1,4 @@
-from messaging import send_public_message
+from messaging import send_public_message, send_private_message, send_error_message
 import time
 
 def send_with_delay(message):
