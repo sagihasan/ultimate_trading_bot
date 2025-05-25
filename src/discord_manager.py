@@ -1,5 +1,5 @@
 from messaging import send_message
-from env_loader import (
+from messaging import (
     DISCORD_PUBLIC_WEBHOOK_URL,
     DISCORD_PRIVATE_WEBHOOK_URL,
     DISCORD_ERRORS_WEBHOOK_URL
