@@ -1,0 +1,26 @@
+import pandas as pd
+from pathlib import Path
+
+# יצירת תקיית data אם לא קיימת
+data_path = Path("data")
+data_path.mkdir(parents=True, exist_ok=True)
+
+# עמודות לקובץ trades_log.xlsx
+trades_log_columns = [
+    "תאריך",
+    "מניה",
+    "סוג עסקה",
+    "מחיר כניסה",
+    "סטופ לוס",
+    "טייק פרופיט",
+    "תוצאה",
+    "תשואה (%)",
+    "אזור מיוחד",
+    "תמיכת שוק"
+]
+
+# יצירת DataFrame ושמירה לקובץ Excel
+df = pd.DataFrame(columns=trades_log_columns)
+df.to_excel(data_path / "trades_log.xlsx", index=False)
+
+print("trades_log.xlsx נוצר בהצלחה בתיקיית data.")
