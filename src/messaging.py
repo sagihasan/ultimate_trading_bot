@@ -1,23 +1,25 @@
+import os
 import requests
-import time
 
-# שמור זמן שליחה אחרון עבור כל webhook
-last_sent_times = {}
+from env_loader import (
+    DISCORD_PUBLIC_WEBHOOK_URL,
+    DISCORD_PRIVATE_WEBHOOK_URL,
+    DISCORD_ERRORS_WEBHOOK_URL
+)
 
-def send_message(webhook_url, message):
+def send_message(webhook_url, content):
     try:
-        # אם כבר נשלחה הודעה ל־webhook הזה — המתן לפחות 1.5 שניות מהפעם הקודמת
-        now = time.time()
-        last_time = last_sent_times.get(webhook_url, 0)
-        if now - last_time < 1.5:
-            time.sleep(1.5 - (now - last_time))
-
-        data = {"content": message}
+        data = {"content": content}
         response = requests.post(webhook_url, json=data)
         response.raise_for_status()
-
-        # עדכן זמן שליחה אחרון
-        last_sent_times[webhook_url] = time.time()
-
     except Exception as e:
         print(f"שגיאה בשליחת הודעה לדיסקורד: {e}")
+
+def send_public_message(content):
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, content)
+
+def send_private_message(content):
+    send_message(DISCORD_PRIVATE_WEBHOOK_URL, content)
+
+def send_error_message(content):
+    send_message(DISCORD_ERRORS_WEBHOOK_URL, content)
