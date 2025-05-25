@@ -1,5 +1,5 @@
 import time
-from messaging import (
+from env_loader import (
     send_public_message,
     send_private_message,
     send_error_message
