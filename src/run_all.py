@@ -4,7 +4,8 @@ from keep_alive import keep_alive
 from scheduler import start_scheduler
 from monthly_planner import send_monthly_plan
 from reporting import send_monthly_report_if_needed, send_weekly_report_if_needed
-
+from messaging import send_message
+from discord_manager import DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL, DISCORD_ERRORS_WEBHOOK_URL
 
 # הפעלת loop יומי לדוחות או הודעות אם צריך
 def run_main_py():
@@ -27,10 +28,3 @@ if __name__ == "__main__":
 
     # 🟢 שליחת תכנון חודשי
     send_monthly_plan()
-
-from messaging import send_message
-from discord_manager import DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL, DISCORD_ERRORS_WEBHOOK_URL
-
-send_message(DISCORD_PUBLIC_WEBHOOK_URL, "🔔 בדיקת שליחת איתות – ציבורי")
-send_message(DISCORD_PRIVATE_WEBHOOK_URL, "📥 בדיקת שליחת איתות – פרטי")
-send_message(DISCORD_ERRORS_WEBHOOK_URL, "⚠️ בדיקת שליחת שגיאה – ערוץ שגיאות")
