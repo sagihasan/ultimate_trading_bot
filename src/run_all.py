@@ -27,3 +27,10 @@ if __name__ == "__main__":
 
     # 🟢 שליחת תכנון חודשי
     send_monthly_plan()
+
+from messaging import send_message
+from discord_manager import DISCORD_PUBLIC_WEBHOOK_URL, DISCORD_PRIVATE_WEBHOOK_URL, DISCORD_ERRORS_WEBHOOK_URL
+
+send_message(DISCORD_PUBLIC_WEBHOOK_URL, "🔔 בדיקת שליחת איתות – ציבורי")
+send_message(DISCORD_PRIVATE_WEBHOOK_URL, "📥 בדיקת שליחת איתות – פרטי")
+send_message(DISCORD_ERRORS_WEBHOOK_URL, "⚠️ בדיקת שליחת שגיאה – ערוץ שגיאות")
