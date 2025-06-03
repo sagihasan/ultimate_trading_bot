@@ -12,5 +12,8 @@ error_webhook = os.getenv("DISCORD_ERRORS_WEBHOOK_URL")
 
 # שולח הודעות בדיקה לכל הערוצים
 send_message(public_webhook, "✅ בדיקת שליחת הודעה לערוץ הציבורי")
+time.sleep(3)
 send_message(private_webhook, "🔒 בדיקת שליחת הודעה לערוץ הפרטי")
+time.sleep(3)
 send_message(error_webhook, "🚨 בדיקת שליחת הודעה לערוץ השגיאות")
+time.sleep(3)
