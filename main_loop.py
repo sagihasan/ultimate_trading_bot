@@ -95,3 +95,5 @@ while True:
             sent_macro_after = True
 
     time.sleep(60)
+
+send_start_message()
