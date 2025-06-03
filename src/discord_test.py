@@ -1,26 +1,16 @@
-import time
-import requests
-from discord_manager import (
-    DISCORD_PUBLIC_WEBHOOK_URL,
-    DISCORD_PRIVATE_WEBHOOK_URL,
-    DISCORD_ERROR_WEBHOOK_URL
-)
+from messaging import send_message
+import os
+from env_loader import load_env
 
-def send_message(webhook_url, content):
-    response = requests.post(webhook_url, json={"content": content})
-    if response.status_code == 204:
-        print(f"הודעה נשלחה בהצלחה: {content}")
-    else:
-        print(f"שגיאה בשליחה: {webhook_url} | קוד: {response.status_code}")
+# טוען את כל משתני הסביבה מהקובץ .env
+load_env()
 
-# שליחת הודעה לערוץ הציבורי
-send_message(DISCORD_PUBLIC_WEBHOOK_URL, "📢 בדיקת שליחה לערוץ הציבורי")
-time.sleep(3)
+# טוען את כל ה־webhooks מהסביבה
+public_webhook = os.getenv("DISCORD_PUBLIC_WEBHOOK_URL")
+private_webhook = os.getenv("DISCORD_PRIVATE_WEBHOOK_URL")
+error_webhook = os.getenv("DISCORD_ERRORS_WEBHOOK_URL")
 
-# שליחת הודעה לערוץ הפרטי
-send_message(DISCORD_PRIVATE_WEBHOOK_URL, "🔒 בדיקת שליחה לערוץ הפרטי")
-time.sleep(3)
-
-# שליחת הודעה לערוץ השגיאות
-send_message(DISCORD_ERROR_WEBHOOK_URL, "❗ בדיקת שליחה לערוץ השגיאות")
-time.sleep(3)
+# שולח הודעות בדיקה לכל הערוצים
+send_message(public_webhook, "✅ בדיקת שליחת הודעה לערוץ הציבורי")
+send_message(private_webhook, "🔒 בדיקת שליחת הודעה לערוץ הפרטי")
+send_message(error_webhook, "🚨 בדיקת שליחת הודעה לערוץ השגיאות")
