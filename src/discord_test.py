@@ -1,27 +1,26 @@
-import os
+import time
 import requests
-from dotenv import load_dotenv
+from discord_manager import (
+    DISCORD_PUBLIC_WEBHOOK_URL,
+    DISCORD_PRIVATE_WEBHOOK_URL,
+    DISCORD_ERROR_WEBHOOK_URL
+)
 
-# טוען משתני סביבה
-load_dotenv()
+def send_message(webhook_url, content):
+    response = requests.post(webhook_url, json={"content": content})
+    if response.status_code == 204:
+        print(f"הודעה נשלחה בהצלחה: {content}")
+    else:
+        print(f"שגיאה בשליחה: {webhook_url} | קוד: {response.status_code}")
 
-# שליפה של הכתובות מהקובץ .env
-PUBLIC = os.getenv("DISCORD_PUBLIC_WEBHOOK_URL")
-PRIVATE = os.getenv("DISCORD_PRIVATE_WEBHOOK_URL")
-ERRORS = os.getenv("DISCORD_ERRORS_WEBHOOK_URL")
+# שליחת הודעה לערוץ הציבורי
+send_message(DISCORD_PUBLIC_WEBHOOK_URL, "📢 בדיקת שליחה לערוץ הציבורי")
+time.sleep(3)
 
-def send_message(url, content):
-    if url:
-        try:
-            response = requests.post(url, json={"content": content})
-            if response.status_code == 204:
-                print(f"הודעה נשלחה בהצלחה לכתובת: {url}")
-            else:
-                print(f"שגיאה בשליחה ל־{url}: {response.status_code}")
-        except Exception as e:
-            print(f"תקלה בשליחה ל־{url}:\n{e}")
+# שליחת הודעה לערוץ הפרטי
+send_message(DISCORD_PRIVATE_WEBHOOK_URL, "🔒 בדיקת שליחה לערוץ הפרטי")
+time.sleep(3)
 
-# שליחת הודעות בדיקה
-send_message(PUBLIC, "📢 בדיקת שליחה לערוץ **ציבורי** בוצעה בהצלחה.")
-send_message(PRIVATE, "📥 בדיקת שליחה לערוץ **פרטי** בוצעה בהצלחה.")
-send_message(ERRORS, "⚠️ בדיקת שליחה לערוץ **שגיאות** בוצעה בהצלחה.")
+# שליחת הודעה לערוץ השגיאות
+send_message(DISCORD_ERROR_WEBHOOK_URL, "❗ בדיקת שליחה לערוץ השגיאות")
+time.sleep(3)
