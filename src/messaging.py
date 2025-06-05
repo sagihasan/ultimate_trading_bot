@@ -148,3 +148,13 @@ def send_gap_exit_alert(symbol, gap_pct, gap_direction, strength, position_direc
         f"🏃 **צא מהעסקה מיד – הסיכון גבוה!**"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_intraday_weakness_alert(symbol, market_phase, weakness_type, action):
+    message = (
+        f"⚠️ **התראת חולשה ({market_phase})**\n"
+        f"📌 מניה: **{symbol}**\n"
+        f"📉 חולשה מזוהה: {weakness_type}\n"
+        f"🧠 ניתוח: סימני חולשה מזוהים ב־{market_phase}\n"
+        f"⚔️ הוראה: {action}\n"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
