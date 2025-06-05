@@ -3,12 +3,12 @@ from datetime import datetime, timedelta
 import pytz
 from market_time_utils import is_real_trading_day, is_no_real_trading, get_market_close_hour
 from risk_management import detects_weakness, detect_bubble_conditions
-from risk_management import detect_bubble_conditions
+from risk_management import detect_bubble_conditions, detect_crisis
 from fundamentals import get_sp500_pe_ratio
 from technicals import detect_volume_surge, get_signal_direction
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 
-from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert
+from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 
