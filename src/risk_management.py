@@ -16,6 +16,35 @@ def calculate_take_profit(entry_price, direction='long'):
     take_profit = entry_price * (1 + DEFAULT_TAKE_PROFIT_PERCENT / 100) if direction == 'long' else entry_price * (1 - DEFAULT_TAKE_PROFIT_PERCENT / 100)
     return round(take_profit, 2)
 
+def detect_bubble_conditions(sp500_trend, nasdaq_trend, vix_level, pe_ratio, volume_surge, direction):
+    bubble_signs = 0
+
+    if direction == "לונג":
+        if sp500_trend == "עלייה חדה":
+            bubble_signs += 1
+        if nasdaq_trend == "עלייה חדה":
+            bubble_signs += 1
+        if vix_level < 14:
+            bubble_signs += 1
+        if pe_ratio > 25:
+            bubble_signs += 1
+        if volume_surge:
+            bubble_signs += 1
+
+    elif direction == "שורט":
+        if sp500_trend == "ירידה חדה":
+            bubble_signs += 1
+        if nasdaq_trend == "ירידה חדה":
+            bubble_signs += 1
+        if vix_level > 25:
+            bubble_signs += 1
+        if pe_ratio < 12:
+            bubble_signs += 1
+        if volume_surge:
+            bubble_signs += 1
+
+    return bubble_signs >= 3
+
 def detects_weakness(symbol, direction):
     data = get_recent_candles(symbol)
     recent = data[-5:]
