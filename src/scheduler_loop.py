@@ -99,21 +99,19 @@ for symbol in stock_list:
     pe_ratio = get_sp500_pe_ratio()
     volume_surge = detect_volume_surge(symbol)
     direction = get_signal_direction(symbol)  # לונג או שורט
+    
+reason = (
+    f"השוק מראה סימנים מובהקים לבועה כלפי {bubble_direction}:\n"
+    f"• S&P 500: {sp500_trend}\n"
+    f"• Nasdaq: {nasdaq_trend}\n"
+    f"• VIX: {vix_level}\n"
+    f"• מכפיל רווח: {pe_ratio}\n"
+    f"• נפח מסחר חריג: {'כן' if volume_surge else 'לא'}"
+)
 
-    # 🔥 בדיקת בועה
-    if detect_bubble_conditions(sp500_trend, nasdaq_trend, vix_level, pe_ratio, volume_surge):
-        bubble_direction = "לונג" if direction == "לונג" else "שורט"
-        message = (
-            f"🚨 **התראת בועה – רמת סיכון גבוהה!**\n"
-            f"🧠 ניתוח מקיף של השוק מעיד על בועה כלפי {bubble_direction}:\n"
-            f"• S&P 500: {sp500_trend}\n"
-            f"• Nasdaq: {nasdaq_trend}\n"
-            f"• VIX: {vix_level}\n"
-            f"• מכפיל רווח: {pe_ratio}\n"
-            f"• נפח מסחר חריג: {'כן' if volume_surge else 'לא'}\n\n"
-            f"⚔️ **הוראת פעולה:** רמת סיכון מוגברת – עדכן סטופ לוס, צמצם פוזיציה או הימנע מכניסה. אין רחמים בשוק בועה!"
-        )
-        send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+suggestion = "רמת סיכון מוגברת – עדכן סטופ לוס, צמצם פוזיציה או הימנע מכניסה. אין רחמים בשוק בועה!"
+
+send_bubble_alert(reason, suggestion)
 
     ...
     # המשך ניתוח טכני ופונדומנטלי
