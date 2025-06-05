@@ -95,6 +95,20 @@ def daily_schedule_loop():
 
 for symbol in stock_list:
 
+gap_info = predict_gap(symbol)
+
+if open_position and gap_info and gap_info["expected"]:
+    if (position_direction == "לונג" and "למטה" in gap_info["direction"]) or \
+       (position_direction == "שורט" and "למעלה" in gap_info["direction"]):
+        
+        send_gap_exit_alert(
+            symbol,
+            gap_info["gap_pct"],
+            gap_info["direction"],
+            gap_info["strength"],
+            position_direction
+        )
+           
 gap_data = predict_gap(symbol)
 if gap_data and gap_data["expected"]:
     send_gap_forecast_alert(
