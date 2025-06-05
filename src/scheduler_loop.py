@@ -5,12 +5,12 @@ from market_time_utils import is_real_trading_day, is_no_real_trading, get_marke
 from risk_management import detects_weakness, detect_bubble_conditions
 from risk_management import detect_bubble_conditions, detect_crisis, detect_institutional_activity
 from fundamentals import get_sp500_pe_ratio, get_fundamental_summary
-from technicals import detect_volume_surge, get_signal_direction, get_technicals_summary
+from technicals import detect_volume_surge, get_signal_direction, get_technicals_summary, calculate_fibonacci_levels, get_current_price
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 from risk_management import open_position, close_position
 from ai_analysis import get_ai_insights
 
-from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert, detect_institutional_activity_alert
+from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert, detect_institutional_activity_alert, send_fibonacci_alert
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 from gap_analysis import detect_expected_gap, predict_gap
@@ -97,6 +97,19 @@ def daily_schedule_loop():
 
 for symbol in stock_list:
 
+if open_position:
+    fib_levels = calculate_fibonacci_levels(symbol)
+    current_price = get_current_price(symbol)
+
+    if fib_levels:
+        for level_name, level_price in fib_levels.items():
+            distance = abs(current_price - level_price) / current_price
+
+            if distance < 0.01:  # פחות מ־1% מהמחיר הנוכחי
+                suggestion = "עדכן סטופ לוס או סגור חלקית – קרוב לרמת פיבונאצ’י משמעותית"
+                send_fibonacci_alert(symbol, level_name, level_price, current_price, suggestion)
+                break
+                
 data = get_recent_candles(symbol)
 zones = check_strategic_zones(symbol, data)
 
