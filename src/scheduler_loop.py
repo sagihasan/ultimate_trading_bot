@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytz
 from market_time_utils import is_real_trading_day, is_no_real_trading, get_market_close_hour
 from risk_management import detects_weakness, detect_bubble_conditions
-from risk_management import detect_bubble_conditions, detect_crisis, detect_institutional_activity
+from risk_management import detect_bubble_conditions, detect_crisis, detect_institutional_activity, detect_emergency_crash
 from fundamentals import get_sp500_pe_ratio, get_fundamental_summary
 from technicals import detect_volume_surge, get_signal_direction, get_technicals_summary, calculate_fibonacci_levels, get_current_price
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
