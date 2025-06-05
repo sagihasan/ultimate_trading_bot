@@ -40,3 +40,6 @@ def is_short_trading_day():
 def is_no_real_trading():
     # סימולציה אם יש בעיות מסחר (כמו פקקים או ווליום נמוך)
     return False  # בינתיים תמיד false אלא אם תוסיף תנאים אמיתיים
+
+def is_real_trading_day():
+    return is_trading_day() and not is_market_closed_due_to_holiday_or_event()
