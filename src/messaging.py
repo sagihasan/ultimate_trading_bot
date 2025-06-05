@@ -92,3 +92,12 @@ def send_weakness_alert(symbol, reason, suggestion):
         f"📌 המלצת הבוט: {suggestion}"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_bubble_alert(reason, suggestion):
+    message = (
+        f"💥 **התראת בועה!**\n"
+        f"📉 {reason}\n"
+        f"🛑 **הוראה מהבוט:** {suggestion}\n"
+        f"⚠️ שים לב – השוק מראה סימני ניפוח מסוכן, יתכן תיקון חד בקרוב."
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
