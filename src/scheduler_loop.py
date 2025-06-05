@@ -12,7 +12,7 @@ from risk_management import open_position, close_position
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
-from gap_analysis import detect_expected_gap
+from gap_analysis import detect_expected_gap, predict_gap
 from position_utils import check_open_position, get_position_direction
 
 # משתנים גלובליים
