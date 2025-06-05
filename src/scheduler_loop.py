@@ -79,14 +79,18 @@ def daily_schedule_loop():
                 send_macro_event_summary_after(text)
                 sent_macro_after = True
 
-# שליחת איתות יומי בשעה הרלוונטית לפי סוג יום
+# שליחת האיתות לפי זמן סגירה (רגיל / מקוצר / פערי שעון)
 signal_hour = get_market_close_hour() - 1
 signal_minute = 40
 
 if now.hour == signal_hour and now.minute == signal_minute:
-
-if now.hour == signal_hour and now.minute == signal_minute:
     if signal_ready:
+        # חישובי סיכון-סיכוי
+        potential_reward_pct = round(((take_profit - entry_price) / entry_price) * 100, 2)
+        potential_risk_pct = round(((entry_price - stop_loss) / entry_price) * 100, 2)
+        potential_reward_usd = round(account_size * (potential_reward_pct / 100), 2)
+        potential_risk_usd = round(account_size * (potential_risk_pct / 100), 2)
+
         send_final_signal(
             symbol=chosen_symbol,
             direction=direction,
