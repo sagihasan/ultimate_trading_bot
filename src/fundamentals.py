@@ -67,4 +67,3 @@ def check_upcoming_earnings(ticker):
 
 
 get_fundamental_summary = analyze_fundamentals
-get_technical_summary = analyze_technicals
