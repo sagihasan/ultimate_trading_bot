@@ -27,10 +27,10 @@ def send_error_message(content):
     send_message(DISCORD_ERRORS_WEBHOOK_URL, content)
 
 
-def send_macro_event_summary_before(event, strength, time):
+def send_macro_event_summary_before(text):
     print(f"📢 תזכורת לאירוע מקרו חזק ({strength}) בעוד שעה ב־{time}: {event}")
     # כאן אפשר להוסיף שליחה לדיסקורד
-   send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ)
+   send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ, text)
 
 def send_macro_event_summary_after(event, summary):
     print(f"📢 סיכום לאחר האירוע {event}: {summary}")
