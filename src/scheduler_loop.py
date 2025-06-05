@@ -95,6 +95,16 @@ def daily_schedule_loop():
 
 for symbol in stock_list:
 
+gap_data = predict_gap(symbol)
+if gap_data and gap_data["expected"]:
+    send_gap_forecast_alert(
+        symbol=symbol,
+        expected_gap_pct=gap_data["gap_pct"],
+        direction=gap_data["direction"],
+        strength=gap_data["strength"],
+        position_direction=direction if open_position else None
+    )
+    
     if is_position_open(symbol):  # בדיקת עסקה פתוחה למניה
         # 🔎 חולשה בפרי־מרקט
         if detect_premarket_weakness(symbol):
