@@ -41,6 +41,9 @@ def daily_schedule_loop():
                 send_start_message()
             sent_today_start = True
 
+        if is_trading_day() and not is_real_trading_day():
+                send_no_real_trading_alert("📢 היום מוגדר כיום מסחר, אך בפועל אין מסחר (חג או אירוע חריג).")
+
         # שליחת הודעת סיום
         if not sent_today_end and current_hour == END_HOUR and current_minute == END_MINUTE:
             print(">>> שליחת הודעת סיום")
