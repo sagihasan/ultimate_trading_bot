@@ -158,6 +158,8 @@ if gap_info:
             gap_info["strength"],
             position_direction
         )
+
+         close_position(symbol)
     
     crisis_detected, direction, indicators_summary = detect_crisis(symbol)
 
@@ -235,5 +237,6 @@ if now.hour == signal_hour and now.minute == signal_minute:
     else:
         reason = analyze_why_no_signal_was_sent()
         send_no_signal_reason(reason)
+        open_position(chosen_symbol)
 
         time.sleep(60)
