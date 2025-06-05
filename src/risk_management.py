@@ -16,15 +16,48 @@ def calculate_take_profit(entry_price, direction='long'):
     take_profit = entry_price * (1 + DEFAULT_TAKE_PROFIT_PERCENT / 100) if direction == 'long' else entry_price * (1 - DEFAULT_TAKE_PROFIT_PERCENT / 100)
     return round(take_profit, 2)
 
-def detects_weakness(symbol):
+def detects_weakness(symbol, direction):
     data = get_recent_candles(symbol)
-    red_candles = [c for c in data[-3:] if c['close'] < c['open'] and c['volume'] > average_volume(symbol)]
-
+    recent = data[-5:]
     rsi = calculate_rsi(data)
     macd = calculate_macd(data)
+    avg_vol = average_volume(symbol)
+    ma20 = get_moving_average(data, 20)
+    current_price = recent[-1]['close']
+    fib = calculate_fibonacci_level(data)
+    bollinger = calculate_bollinger_bands(data)
 
-    if len(red_candles) >= 2 or (rsi < 40 and macd['hist'] < 0):
-        return True
+    red_candles = [c for c in recent if c['close'] < c['open'] and c['volume'] > avg_vol]
+    green_candles = [c for c in recent if c['close'] > c['open'] and c['volume'] > avg_vol]
+
+    if direction == "לונג":
+        return (
+            len(red_candles) >= 2 or
+            current_price < ma20 or
+            rsi < 40 or
+            macd['hist'] < 0 or
+            current_price < fib['61.8'] or
+            current_price < bollinger['lower'] or
+            is_bearish_engulfing(recent) or
+            detect_triangle_pattern(data) or
+            detect_flag_pattern(data) or
+            detects_reversal_peak(data)
+        )
+    
+    elif direction == "שורט":
+        return (
+            len(green_candles) >= 2 or
+            current_price > ma20 or
+            rsi > 60 or
+            macd['hist'] > 0 or
+            current_price > fib['61.8'] or
+            current_price > bollinger['upper'] or
+            is_bullish_engulfing(recent) or
+            detect_triangle_pattern(data) or
+            detect_flag_pattern(data) or
+            detects_reversal_valley(data)
+        )
+    
     return False
 
 def evaluate_risk_reward(entry_price, stop_loss, take_profit):
