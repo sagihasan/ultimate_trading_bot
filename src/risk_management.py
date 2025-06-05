@@ -79,6 +79,16 @@ def detect_bubble_conditions(sp500_trend, nasdaq_trend, vix_level, pe_ratio, vol
 
     return bubble_signs >= 3
 
+def is_position_open(symbol):
+    # לדוגמה – בדיקה אם הסימול נמצא ברשימת הפוזיציות:
+    return symbol in current_positions  # current_positions = רשימת המניות עם עסקאות פתוחות
+
+# שמירת רשימת פוזיציות פתוחות
+current_positions = []
+
+def is_position_open(symbol):
+    return symbol in current_positions
+
 def detects_weakness(symbol, direction):
     data = get_recent_candles(symbol)
     recent = data[-5:]
