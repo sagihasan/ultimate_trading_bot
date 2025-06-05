@@ -5,7 +5,7 @@ from messaging import send_no_signal_reason
 from signal_analysis import analyze_why_no_signal_was_sent
 
 send_message(os.getenv('DISCORD_PRIVATE_WEBHOOK_URL'), '✅ הבוט התחיל לפעול')
-send_message(os.getenv('DISCORD_PRIVATE_WEBHOOK_URL'), '✅ הבוט סיים את הפעולה')
+send_message(os.getenv('DISCORD_PRIVATE_WEBHOOK_URL'), '🌙הבוט סיים לפעול')
 
 from datetime import datetime, timedelta
 from pytz import timezone
