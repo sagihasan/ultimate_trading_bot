@@ -176,3 +176,14 @@ def send_gap_forecast_alert(symbol, expected_gap_pct, direction, strength, posit
 
     message += "📅 הבוט מזהה תנודתיות חזקה בפתיחה – פעל בהתאם!"
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_institutional_activity_alert(symbol, activity_type, volume, body_size):
+    message = (
+        f"🏦 **זוהתה פעילות מוסדית**\n"
+        f"📌 מניה: {symbol}\n"
+        f"🎯 סוג פעילות: {activity_type}\n"
+        f"📊 גודל גוף נר: {body_size}\n"
+        f"📈 נפח חריג: {volume}\n"
+        f"⚔️ סימן חזק לכך שגופים מוסדיים פועלים – פעל בהתאם!"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
