@@ -2,6 +2,7 @@
 
 from config import DEFAULT_STOP_LOSS_PERCENT, DEFAULT_TAKE_PROFIT_PERCENT
 from config import PORTFOLIO_SIZE
+from technicals import get_recent_candles, average_volume
 
 def calculate_position_size(entry_price, stop_loss_price, risk_percent=2):
     risk_amount = (risk_percent / 100) * PORTFOLIO_SIZE
