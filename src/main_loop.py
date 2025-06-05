@@ -2,17 +2,25 @@ from messaging import send_start_message, send_end_message
 import os
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 from messaging import send_no_signal_reason
+from signal_analysis import analyze_why_no_signal_was_sent
 
 send_message(os.getenv('DISCORD_PUBLIC_WEBHOOK_URL'), '✅ הבוט התחיל לפעול')
 
 from datetime import datetime, timedelta
 from pytz import timezone
 import time
+from messaging import send_no_signal_reason
+from reporting import analyze_why_no_signal_was_sent
+from final_signal import send_final_signal
 
-from src.main import run_bot
+from main import run_bot
 
 
-def send_final_signal():
+if signal_ready:
+    send_final_signal()
+else:
+    reason = analyze_why_no_signal_was_sent()
+    send_no_signal_reason(reason)
     run_bot()
 
 
@@ -22,8 +30,6 @@ from scheduler_loop import (check_macro_alerts, send_start_message,
                             send_no_real_trading_alert)
 
 from market_time_utils import get_market_close_hour, is_short_trading_day, is_no_real_trading
-
-# הגדרות זמנים קבועים
 
 # flags
 sent_today_start = False
