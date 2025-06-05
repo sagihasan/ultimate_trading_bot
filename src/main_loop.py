@@ -1,4 +1,4 @@
-from messaging import send_message
+from messaging import send_start_message, send_end_message
 import os
 
 send_message(os.getenv('DISCORD_PUBLIC_WEBHOOK_URL'), '✅ הבוט התחיל לפעול')
