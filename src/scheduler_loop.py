@@ -122,6 +122,7 @@ for symbol in stock_list:
                 weakness_type="מכירת סוף יום עם המשך ירידות",
                 action="חולשה חמורה – הכן יציאה עוד הלילה או בפתיחה הקרובה"
             )
+        close_position(symbol)  # אפשרי אם אתה רוצה שהבוט יסגור לבד עסקאות על חולשה
         
     # בדיקה אם קיימת עסקה פתוחה
 open_position = check_open_position(symbol)
