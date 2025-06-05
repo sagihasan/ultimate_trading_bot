@@ -101,3 +101,29 @@ def send_bubble_alert(reason, suggestion):
         f"⚠️ שים לב – השוק מראה סימני ניפוח מסוכן, יתכן תיקון חד בקרוב."
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_crisis_alert(symbol, direction, indicators_summary, has_open_position=False, current_position_direction=None):
+    base_message = (
+        f"🚨 **התראת משבר – סימנים חזקים לתנועה קיצונית צפויה!**\n"
+        f"📌 מניה: **{symbol}**\n"
+        f"📈 כיוון מוערך: {direction}\n"
+        f"📊 אינדיקטורים שמעידים על המשבר:\n{indicators_summary}\n"
+    )
+
+    action_message = ""
+    if has_open_position:
+        if direction != current_position_direction:
+            action_message = (
+                "⚔️ **הוראה מיידית:** כיוון הפוך לעסקה – צא מיידית או עדכן סטופ!"
+            )
+        else:
+            action_message = (
+                "✅ הכיוון תואם – המשך לעקוב, יתכנו תנודות חדות."
+            )
+    else:
+        action_message = (
+            "🚫 אין עסקה פתוחה – הימנע מכניסה עד שהתמונה תתבהר!"
+        )
+
+    full_message = base_message + "\n" + action_message
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, full_message)
