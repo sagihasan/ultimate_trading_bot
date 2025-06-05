@@ -83,3 +83,12 @@ def send_final_signal(symbol, direction, entry_price, stop_loss, take_profit, or
         f"⚠️ **סיכון:** {potential_risk_pct}% | ~{potential_risk_usd}$"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_weakness_alert(symbol, reason, suggestion):
+    message = (
+        f"⚠️ **סימני חולשה בעסקה פתוחה**\n"
+        f"🔍 מניה: {symbol}\n"
+        f"📉 סיבה: {reason}\n"
+        f"📌 המלצת הבוט: {suggestion}"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
