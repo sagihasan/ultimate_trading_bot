@@ -46,6 +46,21 @@ def detect_live_weakness(symbol):
 def detect_aftermarket_weakness(symbol):
     return detects_weakness(symbol, direction="לונג") or detects_weakness(symbol, direction="שורט")
 
+def detect_emergency_crash(symbol):
+    data = get_recent_candles(symbol)
+    if len(data) < 2:
+        return False
+
+    last = data[-1]
+    prev = data[-2]
+    avg_volume = average_volume(symbol)
+
+    big_red = last['close'] < last['open'] and (last['open'] - last['close']) > 0.05 * last['open']
+    high_volume = last['volume'] > avg_volume * 3
+    broke_support = last['low'] < prev['low'] and last['close'] < prev['close']
+
+    return big_red and high_volume and broke_support
+
 def detect_crisis(symbol):
     # סימולציה – תחליף בעתיד באינדיקטורים חכמים יותר
     vix = get_vix_level()
