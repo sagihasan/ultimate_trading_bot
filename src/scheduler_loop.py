@@ -14,6 +14,7 @@ from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 from gap_analysis import detect_expected_gap, predict_gap
 from position_utils import check_open_position, get_position_direction
+from strategic_zones import check_strategic_zones
 
 # משתנים גלובליים
 sent_today_start = False
@@ -95,6 +96,20 @@ def daily_schedule_loop():
 
 for symbol in stock_list:
 
+data = get_recent_candles(symbol)
+zones = check_strategic_zones(symbol, data)
+
+zones_description = " | ".join(zones) if zones else "לא נמצאו אזורים מיוחדים"
+
+# אם יש אזור חשוב – שלח התראה
+if zones:
+    zone_message = (
+        f"🧭 **זוהה אזור אסטרטגי למניה {symbol}**\n"
+        f"📌 אזור(ים): {zones_description}\n"
+        f"⚠️ ייתכן שינוי מגמה – עקוב מקרוב!"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, zone_message)
+    
 institutional_activity = detect_institutional_activity(symbol)
 if institutional_activity:
     send_institutional_activity_alert(
