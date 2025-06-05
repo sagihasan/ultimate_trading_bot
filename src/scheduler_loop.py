@@ -12,6 +12,7 @@ from messaging import send_macro_event_summary_before, send_macro_event_summary_
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 from gap_analysis import detect_expected_gap
+from position_utils import check_open_position, get_position_direction
 
 # משתנים גלובליים
 sent_today_start = False
