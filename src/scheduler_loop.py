@@ -92,6 +92,10 @@ def daily_schedule_loop():
                 sent_macro_after = True
 
 for symbol in stock_list:
+    gap_info = detect_expected_gap(symbol)
+if gap_info:
+    send_gap_alert(symbol, gap_info)
+    
     crisis_detected, direction, indicators_summary = detect_crisis(symbol)
 
 if crisis_detected:
