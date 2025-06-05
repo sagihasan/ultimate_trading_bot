@@ -16,6 +16,15 @@ def calculate_take_profit(entry_price, direction='long'):
     take_profit = entry_price * (1 + DEFAULT_TAKE_PROFIT_PERCENT / 100) if direction == 'long' else entry_price * (1 - DEFAULT_TAKE_PROFIT_PERCENT / 100)
     return round(take_profit, 2)
 
+def detect_premarket_weakness(symbol):
+    return detects_weakness(symbol, direction="לונג") or detects_weakness(symbol, direction="שורט")
+
+def detect_live_weakness(symbol):
+    return detects_weakness(symbol, direction="לונג") or detects_weakness(symbol, direction="שורט")
+
+def detect_aftermarket_weakness(symbol):
+    return detects_weakness(symbol, direction="לונג") or detects_weakness(symbol, direction="שורט")
+
 def detect_crisis(symbol):
     # סימולציה – תחליף בעתיד באינדיקטורים חכמים יותר
     vix = get_vix_level()
