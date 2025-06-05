@@ -11,6 +11,7 @@ from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
+from gap_analysis import detect_expected_gap
 
 # משתנים גלובליים
 sent_today_start = False
