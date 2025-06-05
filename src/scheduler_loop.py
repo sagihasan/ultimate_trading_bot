@@ -93,30 +93,34 @@ def daily_schedule_loop():
                 sent_macro_after = True
 
 for symbol in stock_list:
-    if open_position:
-    if detect_premarket_weakness(symbol):
-        send_intraday_weakness_alert(
-            symbol,
-            market_phase="פרי־מרקט",
-            weakness_type="ווליום נמוך וירידה חדה בהתחלה",
-            action="צא מהעסקה או עדכן סטופ לוס – לפני שהמכה באה"
-        )
 
-    if detect_live_weakness(symbol):
-        send_intraday_weakness_alert(
-            symbol,
-            market_phase="שעות מסחר",
-            weakness_type="נר אדום עם ווליום חריג וירידה רציפה",
-            action="סגור חצי או צא לגמרי – לא נותנים לשוק להרביץ פעמיים"
-        )
+    if is_position_open(symbol):  # בדיקת עסקה פתוחה למניה
+        # 🔎 חולשה בפרי־מרקט
+        if detect_premarket_weakness(symbol):
+            send_intraday_weakness_alert(
+                symbol=symbol,
+                market_phase="פרי־מרקט",
+                weakness_type="נפח נמוך וירידות מתמשכות לפני פתיחה",
+                action="צא מיידית או עדכן סטופ – לפני שהנפילה תתחיל באמת"
+            )
 
-    if detect_aftermarket_weakness(symbol):
-        send_intraday_weakness_alert(
-            symbol,
-            market_phase="אפטר־מרקט",
-            weakness_type="ירידה נוספת אחרי הסגירה",
-            action="התראה חמורה – שקול לסיים את העסקה לפני מחר"
-        )
+        # 🔎 חולשה בזמן המסחר
+        if detect_live_weakness(symbol):
+            send_intraday_weakness_alert(
+                symbol=symbol,
+                market_phase="שעות מסחר",
+                weakness_type="נרות אדומים רצופים עם ווליום עולה",
+                action="הוראה קרבית: סגור חצי מהעסקה או עדכן סטופ – תוקפים לפני שהשוק יתקוף"
+            )
+
+        # 🔎 חולשה באפטר־מרקט
+        if detect_aftermarket_weakness(symbol):
+            send_intraday_weakness_alert(
+                symbol=symbol,
+                market_phase="אפטר־מרקט",
+                weakness_type="מכירת סוף יום עם המשך ירידות",
+                action="חולשה חמורה – הכן יציאה עוד הלילה או בפתיחה הקרובה"
+            )
         
     # בדיקה אם קיימת עסקה פתוחה
 open_position = check_open_position(symbol)
