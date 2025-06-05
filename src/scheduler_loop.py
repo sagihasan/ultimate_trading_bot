@@ -14,6 +14,8 @@ last_day = None
 sent_macro_before = False
 sent_macro_after = False
 
+sent_weakness_alert = False
+
 def daily_schedule_loop():
     global sent_today_start, sent_today_end, last_day
     global sent_macro_before, sent_macro_after
@@ -64,6 +66,10 @@ def daily_schedule_loop():
                 text = format_macro_summary(summary)
                 send_macro_event_summary_before(text)
                 sent_macro_before = True
+
+        if not sent_weakness_alert and detects_weakness(chosen_symbol):
+    ...
+    sent_weakness_alert = True
 
         # שליחת התראת מאקרו רבע שעה אחרי
         if not sent_macro_after:
