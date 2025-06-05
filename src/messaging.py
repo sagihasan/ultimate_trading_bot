@@ -41,3 +41,7 @@ def send_start_message():
 
 def send_end_message():
     send_message(DISCORD_PRIVATE_WEBHOOK_URL, "🌙 הבוט סיים לפעול.")
+
+def send_no_signal_reason(reason):
+    message = f"❌ לא נשלח איתות היום. הסיבה: {reason}\nהבוט קובע – אין כניסה היום."
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
