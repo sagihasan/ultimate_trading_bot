@@ -86,6 +86,35 @@ def daily_schedule_loop():
                 send_macro_event_summary_after(text)
                 sent_macro_after = True
 
+for symbol in stock_list:
+    ...
+    # קבלת נתוני שוק כלליים
+    sp500_trend = get_sp500_trend()
+    nasdaq_trend = get_nasdaq_trend()
+    vix_level = get_vix_level()
+    pe_ratio = get_sp500_pe_ratio()
+    volume_surge = detect_volume_surge(symbol)
+    direction = get_signal_direction(symbol)  # לונג או שורט
+
+    # 🔥 בדיקת בועה
+    if detect_bubble_conditions(sp500_trend, nasdaq_trend, vix_level, pe_ratio, volume_surge):
+        bubble_direction = "לונג" if direction == "לונג" else "שורט"
+        message = (
+            f"🚨 **התראת בועה – רמת סיכון גבוהה!**\n"
+            f"🧠 ניתוח מקיף של השוק מעיד על בועה כלפי {bubble_direction}:\n"
+            f"• S&P 500: {sp500_trend}\n"
+            f"• Nasdaq: {nasdaq_trend}\n"
+            f"• VIX: {vix_level}\n"
+            f"• מכפיל רווח: {pe_ratio}\n"
+            f"• נפח מסחר חריג: {'כן' if volume_surge else 'לא'}\n\n"
+            f"⚔️ **הוראת פעולה:** רמת סיכון מוגברת – עדכן סטופ לוס, צמצם פוזיציה או הימנע מכניסה. אין רחמים בשוק בועה!"
+        )
+        send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+    ...
+    # המשך ניתוח טכני ופונדומנטלי
+    ...
+
 # שליחת האיתות לפי זמן סגירה (רגיל / מקוצר / פערי שעון)
 signal_hour = get_market_close_hour() - 1
 signal_minute = 40
