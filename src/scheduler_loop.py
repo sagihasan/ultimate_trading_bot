@@ -97,6 +97,9 @@ def daily_schedule_loop():
 
 for symbol in stock_list:
 
+if daily_trend != weekly_trend:
+    send_trend_conflict_alert(symbol, daily_trend, weekly_trend)
+    
 if open_position:
     fib_levels = calculate_fibonacci_levels(symbol)
     current_price = get_current_price(symbol)
