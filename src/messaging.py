@@ -137,3 +137,14 @@ def send_gap_alert(symbol, gap_info):
         f"⚠️ **הוראת פעולה:** התאם את הפקודה – צפה לתנודתיות גבוהה!"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_gap_exit_alert(symbol, gap_pct, gap_direction, strength, position_direction):
+    message = (
+        f"🚨 **התראת יציאה מיידית!**\n"
+        f"🧨 גאפ צפוי {gap_direction} בעוצמה {strength} ({gap_pct}%)\n"
+        f"📌 מניה: **{symbol}**\n"
+        f"⚔️ כיוון העסקה: {position_direction}\n"
+        f"❗ הגאפ מנוגד לעסקה הפתוחה.\n"
+        f"🏃 **צא מהעסקה מיד – הסיכון גבוה!**"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
