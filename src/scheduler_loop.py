@@ -8,6 +8,7 @@ from fundamentals import get_sp500_pe_ratio, get_fundamental_summary
 from technicals import detect_volume_surge, get_signal_direction, get_technicals_summary
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 from risk_management import open_position, close_position
+from ai_analysis import get_ai_insights
 
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert, detect_institutional_activity_alert
 from macro import get_macro_summary, format_macro_summary
