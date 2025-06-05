@@ -26,7 +26,6 @@ def send_private_message(content):
 def send_error_message(content):
     send_message(DISCORD_ERRORS_WEBHOOK_URL, content)
 
-
 def send_macro_event_summary_before(text):
     print(f"📢 תזכורת לאירוע מקרו חזק ({strength}) בעוד שעה ב־{time}: {event}")
     # כאן אפשר להוסיף שליחה לדיסקורד
@@ -45,4 +44,8 @@ def send_end_message():
 
 def send_no_signal_reason(reason):
     message = f"❌ לא נשלח איתות היום. הסיבה: {reason}\nהבוט קובע – אין כניסה היום."
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_no_real_trading_alert():
+    message = "📛 יום מסחר היום – אך אין מסחר בפועל (כנראה חג בארה\"ב)."
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
