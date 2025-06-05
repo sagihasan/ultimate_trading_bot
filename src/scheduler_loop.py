@@ -93,6 +93,31 @@ def daily_schedule_loop():
                 sent_macro_after = True
 
 for symbol in stock_list:
+    if open_position:
+    if detect_premarket_weakness(symbol):
+        send_intraday_weakness_alert(
+            symbol,
+            market_phase="פרי־מרקט",
+            weakness_type="ווליום נמוך וירידה חדה בהתחלה",
+            action="צא מהעסקה או עדכן סטופ לוס – לפני שהמכה באה"
+        )
+
+    if detect_live_weakness(symbol):
+        send_intraday_weakness_alert(
+            symbol,
+            market_phase="שעות מסחר",
+            weakness_type="נר אדום עם ווליום חריג וירידה רציפה",
+            action="סגור חצי או צא לגמרי – לא נותנים לשוק להרביץ פעמיים"
+        )
+
+    if detect_aftermarket_weakness(symbol):
+        send_intraday_weakness_alert(
+            symbol,
+            market_phase="אפטר־מרקט",
+            weakness_type="ירידה נוספת אחרי הסגירה",
+            action="התראה חמורה – שקול לסיים את העסקה לפני מחר"
+        )
+        
     # בדיקה אם קיימת עסקה פתוחה
 open_position = check_open_position(symbol)
 if open_position:
