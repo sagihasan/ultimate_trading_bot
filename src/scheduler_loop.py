@@ -92,6 +92,15 @@ def daily_schedule_loop():
                 sent_macro_after = True
 
 for symbol in stock_list:
+    # בדיקה אם יש עסקה פתוחה על המניה
+open_position = check_open_position(symbol)  # פונקציה שתחזיר True/False
+
+# אם קיימת – נקבע גם את הכיוון
+if open_position:
+    position_direction = get_position_direction(symbol)  # תחזיר "לונג" או "שורט"
+else:
+    position_direction = None
+    
     gap_info = detect_expected_gap(symbol)
 if gap_info:
     send_gap_alert(symbol, gap_info)
