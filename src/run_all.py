@@ -14,7 +14,7 @@ def run_main_py():
 
 if __name__ == "__main__":
     # 🟢 שליחת הודעת התחלה + הודעת סיום + איתותים (main.py)
-    threading.Thread(target=run_main_py, daemon=True).start()
+    threading.Thread(target=run_main.py, daemon=True).start()
 
     # 🟢 שמירה על הרצה תמידית ב־Replit
     keep_alive()
