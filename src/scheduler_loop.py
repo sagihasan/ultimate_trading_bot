@@ -4,8 +4,8 @@ import pytz
 from market_time_utils import is_real_trading_day, is_no_real_trading, get_market_close_hour
 from risk_management import detects_weakness, detect_bubble_conditions
 from risk_management import detect_bubble_conditions, detect_crisis, detect_institutional_activity
-from fundamentals import get_sp500_pe_ratio
-from technicals import detect_volume_surge, get_signal_direction
+from fundamentals import get_sp500_pe_ratio, get_fundamental_summary
+from technicals import detect_volume_surge, get_signal_direction, get_technicals_summary
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 from risk_management import open_position, close_position
 
