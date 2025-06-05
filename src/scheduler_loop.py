@@ -2,7 +2,7 @@ import time
 from datetime import datetime, timedelta
 import pytz
 
-from messaging import send_macro_event_summary_before, send_macro_event_summary_after
+from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 
