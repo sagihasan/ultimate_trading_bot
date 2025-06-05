@@ -16,6 +16,40 @@ def calculate_take_profit(entry_price, direction='long'):
     take_profit = entry_price * (1 + DEFAULT_TAKE_PROFIT_PERCENT / 100) if direction == 'long' else entry_price * (1 - DEFAULT_TAKE_PROFIT_PERCENT / 100)
     return round(take_profit, 2)
 
+def detect_crisis(symbol):
+    # סימולציה – תחליף בעתיד באינדיקטורים חכמים יותר
+    vix = get_vix_level()
+    market_trend = get_sp500_trend()
+    volume = get_current_volume(symbol)
+    rsi = get_current_rsi(symbol)
+
+    crisis_indicators = []
+
+    if vix > 25:
+        crisis_indicators.append("VIX גבוה – תנודתיות קיצונית")
+    if market_trend == "ירידה חדה":
+        crisis_indicators.append("ירידה חדה ב־S&P 500")
+    if rsi < 30:
+        crisis_indicators.append("RSI נמוך מאוד – לחץ מכירה חזק")
+    if volume > 2 * average_volume(symbol):
+        crisis_indicators.append("נפח מסחר גבוה פי 2 מהממוצע")
+
+    if len(crisis_indicators) >= 2:
+        direction = "למטה"
+        summary = "\n".join(f"• {line}" for line in crisis_indicators)
+        return True, direction, summary
+
+    # תוכל להוסיף גם זיהוי משבר לונג (אופוריה)
+    if rsi > 80 and market_trend == "עלייה חדה" and vix < 14:
+        summary = (
+            "• RSI גבוה מאוד\n"
+            "• מגמת עלייה חדה בשוק\n"
+            "• VIX נמוך – שקט מדומה לפני סערה"
+        )
+        return True, "למעלה", summary
+
+    return False, None, None
+
 def detect_bubble_conditions(sp500_trend, nasdaq_trend, vix_level, pe_ratio, volume_surge, direction):
     bubble_signs = 0
 
