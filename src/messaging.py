@@ -127,3 +127,13 @@ def send_crisis_alert(symbol, direction, indicators_summary, has_open_position=F
 
     full_message = base_message + "\n" + action_message
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, full_message)
+
+def send_gap_alert(symbol, gap_info):
+    message = (
+        f"📢 **התראת גאפ צפוי – פתיחה {gap_info['direction']}**\n"
+        f"🧨 מניה: **{symbol}**\n"
+        f"📊 גודל הגאפ: {gap_info['gap_pct']}%\n"
+        f"🔥 עוצמה: {gap_info['strength']}\n"
+        f"⚠️ **הוראת פעולה:** התאם את הפקודה – צפה לתנודתיות גבוהה!"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
