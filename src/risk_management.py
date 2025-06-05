@@ -8,6 +8,27 @@ def calculate_position_size(entry_price, stop_loss_price, risk_percent=2):
     position_size = risk_amount / abs(entry_price - stop_loss_price)
     return max(1, int(position_size))
 
+def detect_institutional_activity(symbol):
+    data = get_recent_candles(symbol)
+    last_candle = data[-1]
+    avg_volume = average_volume(symbol)
+
+    large_volume = last_candle['volume'] > avg_volume * 2.5
+    long_body = abs(last_candle['close'] - last_candle['open']) > 0.02 * last_candle['open']
+    high_wick = (last_candle['high'] - max(last_candle['close'], last_candle['open'])) > 0.01 * last_candle['open']
+    low_wick = (min(last_candle['close'], last_candle['open']) - last_candle['low']) > 0.01 * last_candle['open']
+
+    accumulation = large_volume and last_candle['close'] > last_candle['open'] and low_wick
+    distribution = large_volume and last_candle['close'] < last_candle['open'] and high_wick
+
+    if accumulation or distribution:
+        return {
+            "type": "צבירה" if accumulation else "חלוקה",
+            "volume": last_candle['volume'],
+            "body": round(abs(last_candle['close'] - last_candle['open']), 2)
+        }
+    return None
+
 def calculate_stop_loss(entry_price, direction='long'):
     stop_loss = entry_price * (1 - DEFAULT_STOP_LOSS_PERCENT / 100) if direction == 'long' else entry_price * (1 + DEFAULT_STOP_LOSS_PERCENT / 100)
     return round(stop_loss, 2)
