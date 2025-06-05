@@ -16,6 +16,17 @@ def calculate_take_profit(entry_price, direction='long'):
     take_profit = entry_price * (1 + DEFAULT_TAKE_PROFIT_PERCENT / 100) if direction == 'long' else entry_price * (1 - DEFAULT_TAKE_PROFIT_PERCENT / 100)
     return round(take_profit, 2)
 
+def detects_weakness(symbol):
+    data = get_recent_candles(symbol)
+    red_candles = [c for c in data[-3:] if c['close'] < c['open'] and c['volume'] > average_volume(symbol)]
+
+    rsi = calculate_rsi(data)
+    macd = calculate_macd(data)
+
+    if len(red_candles) >= 2 or (rsi < 40 and macd['hist'] < 0):
+        return True
+    return False
+
 def evaluate_risk_reward(entry_price, stop_loss, take_profit):
     risk = abs(entry_price - stop_loss)
     reward = abs(take_profit - entry_price)
