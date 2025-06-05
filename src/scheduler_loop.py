@@ -79,4 +79,41 @@ def daily_schedule_loop():
                 send_macro_event_summary_after(text)
                 sent_macro_after = True
 
+# שליחת איתות יומי בשעה הרלוונטית לפי סוג יום
+signal_hour = get_market_close_hour() - 1
+signal_minute = 40
+
+if now.hour == signal_hour and now.minute == signal_minute:
+
+if now.hour == signal_hour and now.minute == signal_minute:
+    if signal_ready:
+        send_final_signal(
+            symbol=chosen_symbol,
+            direction=direction,
+            entry_price=entry_price,
+            stop_loss=stop_loss,
+            take_profit=take_profit,
+            order_type=order_type,
+            sector=sector,
+            daily_trend=daily_trend,
+            weekly_trend=weekly_trend,
+            monthly_trend=monthly_trend,
+            zones=zones,
+            fundamental_summary=fundamental_summary,
+            future_expectation=future_expectation,
+            sp500_trend=sp500_trend,
+            nasdaq_trend=nasdaq_trend,
+            vix_level=vix_level,
+            ai_insight_1=ai_insight_1,
+            ai_insight_2=ai_insight_2,
+            confidence_level=confidence_level,
+            potential_reward_pct=potential_reward_pct,
+            potential_reward_usd=potential_reward_usd,
+            potential_risk_pct=potential_risk_pct,
+            potential_risk_usd=potential_risk_usd
+        )
+    else:
+        reason = analyze_why_no_signal_was_sent()
+        send_no_signal_reason(reason)
+
         time.sleep(60)
