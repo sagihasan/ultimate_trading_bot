@@ -89,6 +89,14 @@ current_positions = []
 def is_position_open(symbol):
     return symbol in current_positions
 
+def open_position(symbol):
+    if symbol not in current_positions:
+        current_positions.append(symbol)
+
+def close_position(symbol):
+    if symbol in current_positions:
+        current_positions.remove(symbol)
+
 def detects_weakness(symbol, direction):
     data = get_recent_candles(symbol)
     recent = data[-5:]
