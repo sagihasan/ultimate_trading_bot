@@ -103,5 +103,20 @@ def identify_zones(df):
 
     return result
 
+def calculate_fibonacci_levels(symbol):
+    data = get_recent_candles(symbol)
+    if len(data) < 60:
+        return None
+
+    high = max(candle['high'] for candle in data[-60:])
+    low = min(candle['low'] for candle in data[-60:])
+    diff = high - low
+
+    return {
+        "61.8%": round(high - diff * 0.618, 2),
+        "78.6%": round(high - diff * 0.786, 2),
+        "100%": round(low, 2)
+    }
+
 
 get_technical_summary = analyze_technicals
