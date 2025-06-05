@@ -207,3 +207,14 @@ def send_trend_conflict_alert(symbol, daily_trend, weekly_trend):
         f"🚫 **פקודה:** המגמות סותרות זו את זו – עצור! אל תיכנס לעסקה בלי תוכנית ברזל. מי שמתעלם מהשבועי – חוטף!"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_emergency_crash_alert(symbol, reason, direction):
+    message = (
+        f"💀 **גיים אובר – זוהתה קריסת שוק יוצאת דופן!**\n"
+        f"📌 מניה: {symbol}\n"
+        f"📉 כיוון הפוזיציה: {direction}\n"
+        f"⚠️ סיבה: {reason}\n\n"
+        f"🎯 **הוראת פעולה:** סיים את העסקה מיידית – אל תתמודד עם מפולת בשוק!\n"
+        f"🚨 נקט באמצעים קרביים – זהו מצב חירום"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
