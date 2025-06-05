@@ -197,3 +197,13 @@ def send_fibonacci_alert(symbol, level_name, level_price, current_price, suggest
         f"⚠️ קרבה לרמה קריטית – {suggestion}"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_trend_conflict_alert(symbol, daily_trend, weekly_trend):
+    message = (
+        f"🪖 **סטייה בקרב!**\n"
+        f"📌 מניה: **{symbol}**\n"
+        f"📊 מגמה יומית: {daily_trend}\n"
+        f"📈 מגמה שבועית: {weekly_trend}\n"
+        f"🚫 **פקודה:** המגמות סותרות זו את זו – עצור! אל תיכנס לעסקה בלי תוכנית ברזל. מי שמתעלם מהשבועי – חוטף!"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
