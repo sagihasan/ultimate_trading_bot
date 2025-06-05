@@ -158,3 +158,21 @@ def send_intraday_weakness_alert(symbol, market_phase, weakness_type, action):
         f"⚔️ הוראה: {action}\n"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_gap_forecast_alert(symbol, expected_gap_pct, direction, strength, position_direction=None):
+    message = (
+        f"📢 **התראת גאפ צפוי למחר!**\n"
+        f"📌 מניה: {symbol}\n"
+        f"📈 כיוון הגאפ: {direction}\n"
+        f"📊 עוצמה: {strength}\n"
+        f"📉 גודל משוער: {expected_gap_pct}%\n"
+    )
+
+    if position_direction:
+        if direction == "למטה" and position_direction == "לונג":
+            message += "⚠️ עסקת לונג פתוחה עלולה להיפגע – **צא מייד או הגן על עצמך!**\n"
+        elif direction == "למעלה" and position_direction == "שורט":
+            message += "⚠️ עסקת שורט פתוחה עלולה להיפגע – **סיים את העסקה לפני שהשוק יעלה עליך!**\n"
+
+    message += "📅 הבוט מזהה תנודתיות חזקה בפתיחה – פעל בהתאם!"
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
