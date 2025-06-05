@@ -1,6 +1,7 @@
 from messaging import send_start_message, send_end_message
 import os
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
+from messaging import send_no_signal_reason
 
 send_message(os.getenv('DISCORD_PUBLIC_WEBHOOK_URL'), '✅ הבוט התחיל לפעול')
 
