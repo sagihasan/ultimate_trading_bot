@@ -4,6 +4,7 @@ import pytz
 
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after
 from macro import get_macro_summary, format_macro_summary
+from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 
 # משתנים גלובליים
 sent_today_start = False
@@ -11,17 +12,6 @@ sent_today_end = False
 last_day = None
 sent_macro_before = False
 sent_macro_after = False
-
-# שעות מוגדרות
-START_HOUR = 11
-START_MINUTE = 0
-END_HOUR = 2
-END_MINUTE = 10
-
-# זמן האירוע המאקרו (לדוגמה: 17:00)
-MACRO_EVENT_HOUR = 17
-MACRO_EVENT_MINUTE = 0
-
 
 def daily_schedule_loop():
     global sent_today_start, sent_today_end, last_day
