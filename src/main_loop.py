@@ -1,5 +1,6 @@
 from messaging import send_start_message, send_end_message
 import os
+from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 
 send_message(os.getenv('DISCORD_PUBLIC_WEBHOOK_URL'), '✅ הבוט התחיל לפעול')
 
@@ -22,12 +23,6 @@ from scheduler_loop import (check_macro_alerts, send_start_message,
 from market_time_utils import get_market_close_hour, is_short_trading_day, is_no_real_trading
 
 # הגדרות זמנים קבועים
-START_HOUR = 11
-START_MINUTE = 0
-END_HOUR = 2
-END_MINUTE = 10
-MACRO_EVENT_HOUR = 17
-MACRO_EVENT_MINUTE = 0
 
 # flags
 sent_today_start = False
