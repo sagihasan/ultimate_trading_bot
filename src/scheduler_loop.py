@@ -7,6 +7,7 @@ from risk_management import detect_bubble_conditions, detect_crisis
 from fundamentals import get_sp500_pe_ratio
 from technicals import detect_volume_surge, get_signal_direction
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
+from risk_management import open_position, close_position
 
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert
 from macro import get_macro_summary, format_macro_summary
