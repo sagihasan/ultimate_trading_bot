@@ -53,7 +53,9 @@ def send_no_real_trading_alert():
 def send_final_signal(symbol, direction, entry_price, stop_loss, take_profit, order_type, sector,
                       daily_trend, weekly_trend, monthly_trend, zones, fundamental_summary,
                       sp500_trend, nasdaq_trend, vix_level, ai_insight_1, ai_insight_2,
-                      future_expectation):
+                      future_expectation,
+                      confidence_level, potential_reward_pct, potential_reward_usd,
+                      potential_risk_pct, potential_risk_usd):
     message = (
         f"📣 **איתות קרבי – הבוט קובע!**\n"
         f"📌 מניה: **{symbol}**\n"
@@ -75,6 +77,9 @@ def send_final_signal(symbol, direction, entry_price, stop_loss, take_profit, or
         f"• VIX: {vix_level}\n"
         f"🤖 תובנות AI:\n"
         f"• {ai_insight_1}\n"
-        f"• {ai_insight_2}"
+        f"• {ai_insight_2}\n"
+        f"🔐 **רמת ביטחון:** {confidence_level}%\n"
+        f"📈 **סיכוי לרווח:** {potential_reward_pct}% | ~{potential_reward_usd}$\n"
+        f"⚠️ **סיכון:** {potential_risk_pct}% | ~{potential_risk_usd}$"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
