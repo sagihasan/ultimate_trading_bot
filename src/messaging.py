@@ -32,10 +32,10 @@ def send_macro_event_summary_before(text):
     # כאן אפשר להוסיף שליחה לדיסקורד
    send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ, text)
 
-def send_macro_event_summary_after(event, summary):
+def send_macro_event_summary_after(text):
     print(f"📢 סיכום לאחר האירוע {event}: {summary}")
     # כאן אפשר להוסיף שליחה לדיסקורד
-    send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ)
+    send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ, text)
 
 def send_start_message():
     send_message(DISCORD_PRIVATE_WEBHOOK_URL, "🟢 הבוט התחיל לפעול.")
