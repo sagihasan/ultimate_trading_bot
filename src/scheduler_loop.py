@@ -1,7 +1,7 @@
 import time
 from datetime import datetime, timedelta
 import pytz
-from market_time_utils import is_market_closed
+from market_time_utils import is_real_trading_day, is_no_real_trading, get_market_close_hour
 
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert
 from macro import get_macro_summary, format_macro_summary
