@@ -187,3 +187,13 @@ def send_institutional_activity_alert(symbol, activity_type, volume, body_size):
         f"⚔️ סימן חזק לכך שגופים מוסדיים פועלים – פעל בהתאם!"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_fibonacci_alert(symbol, level_name, level_price, current_price, suggestion):
+    message = (
+        f"📐 **התראת פיבונאצ’י**\n"
+        f"📌 מניה: {symbol}\n"
+        f"📏 רמת פיבונאצ’י: {level_name} ({level_price})\n"
+        f"💰 מחיר נוכחי: {current_price}\n"
+        f"⚠️ קרבה לרמה קריטית – {suggestion}"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
