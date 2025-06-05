@@ -91,6 +91,16 @@ def daily_schedule_loop():
                 sent_macro_after = True
 
 for symbol in stock_list:
+    crisis_detected, direction, indicators_summary = detect_crisis(symbol)
+
+if crisis_detected:
+    send_crisis_alert(
+        symbol=symbol,
+        direction=direction,
+        indicators_summary=indicators_summary,
+        has_open_position=open_position,
+        current_position_direction=direction
+    )
     ...
     # קבלת נתוני שוק כלליים
     sp500_trend = get_sp500_trend()
