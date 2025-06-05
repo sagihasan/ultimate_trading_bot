@@ -244,6 +244,11 @@ suggestion = "רמת סיכון מוגברת – עדכן סטופ לוס, צמ�
 send_bubble_alert(reason, suggestion)
 
     ...
+
+ai_insights = get_ai_insights(symbol, technicals, fundamentals)
+ai_insight_1 = ai_insights[0]
+ai_insight_2 = ai_insights[1]
+
     # המשך ניתוח טכני ופונדומנטלי
     ...
 
