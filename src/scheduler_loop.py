@@ -8,7 +8,7 @@ from fundamentals import get_sp500_pe_ratio
 from technicals import detect_volume_surge, get_signal_direction
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 
-from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert
+from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 from gap_analysis import detect_expected_gap
@@ -95,6 +95,18 @@ for symbol in stock_list:
     gap_info = detect_expected_gap(symbol)
 if gap_info:
     send_gap_alert(symbol, gap_info)
+
+    if open_position and gap_info:
+    if (position_direction == "לונג" and "למטה" in gap_info["direction"]) or \
+       (position_direction == "שורט" and "למעלה" in gap_info["direction"]):
+        
+        send_gap_exit_alert(
+            symbol,
+            gap_info["gap_pct"],
+            gap_info["direction"],
+            gap_info["strength"],
+            position_direction
+        )
     
     crisis_detected, direction, indicators_summary = detect_crisis(symbol)
 
