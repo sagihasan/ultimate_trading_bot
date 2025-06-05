@@ -95,6 +95,15 @@ def daily_schedule_loop():
 
 for symbol in stock_list:
 
+institutional_activity = detect_institutional_activity(symbol)
+if institutional_activity:
+    send_institutional_activity_alert(
+        symbol,
+        institutional_activity["type"],
+        institutional_activity["volume"],
+        institutional_activity["body"]
+    )
+    
 gap_info = predict_gap(symbol)
 
 if open_position and gap_info and gap_info["expected"]:
