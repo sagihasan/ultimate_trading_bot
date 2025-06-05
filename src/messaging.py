@@ -30,11 +30,12 @@ def send_error_message(content):
 def send_macro_event_summary_before(event, strength, time):
     print(f"📢 תזכורת לאירוע מקרו חזק ({strength}) בעוד שעה ב־{time}: {event}")
     # כאן אפשר להוסיף שליחה לדיסקורד
-
+   send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ)
 
 def send_macro_event_summary_after(event, summary):
     print(f"📢 סיכום לאחר האירוע {event}: {summary}")
     # כאן אפשר להוסיף שליחה לדיסקורד
+    send_message(DISCORD_PUBLIC_WEBHOOK_URLׁׁׁׁׁׂ)
 
 def send_start_message():
     send_message(DISCORD_PRIVATE_WEBHOOK_URL, "🟢 הבוט התחיל לפעול.")
