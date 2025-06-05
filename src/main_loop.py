@@ -25,7 +25,7 @@ from market_time_utils import get_market_close_hour, is_short_trading_day, is_no
 START_HOUR = 11
 START_MINUTE = 0
 END_HOUR = 2
-END_MINUTE = 0
+END_MINUTE = 10
 MACRO_EVENT_HOUR = 17
 MACRO_EVENT_MINUTE = 0
 
