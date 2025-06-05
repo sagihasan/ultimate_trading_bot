@@ -48,13 +48,13 @@ def daily_schedule_loop():
         # שליחת הודעת התחלה
         if not sent_today_start and current_hour == START_HOUR and current_minute == START_MINUTE:
             print(">>> שליחת הודעת התחלה")
-            # send_start_message()
+                send_start_message()
             sent_today_start = True
 
         # שליחת הודעת סיום
         if not sent_today_end and current_hour == END_HOUR and current_minute == END_MINUTE:
             print(">>> שליחת הודעת סיום")
-            # send_end_message()
+                send_end_message()
             sent_today_end = True
 
         # שליחת התראת מאקרו שעה לפני
