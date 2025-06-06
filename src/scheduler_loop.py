@@ -20,6 +20,10 @@ from position_utils import check_open_position, get_position_direction
 from strategic_zones import check_strategic_zones
 from macro_events import get_upcoming_macro_events
 from trade_management import manage_open_positions
+from weekly_report import generate_weekly_summary
+
+summary_message = generate_weekly_summary(...)
+send_message(DISCORD_PUBLIC_WEBHOOK_URL, summary_message)
 
 # משתנים גלובליים
 sent_today_start = False
