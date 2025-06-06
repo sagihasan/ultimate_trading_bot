@@ -6,6 +6,7 @@ from discord_manager import send_private_message
 from pytz import timezone
 import pandas as pd
 from datetime import datetime
+from reporting import get_sector_support_text
 import os
 
 def get_sector_support_text(sector_analysis):
@@ -18,6 +19,45 @@ def get_sector_support_text(sector_analysis):
         return "🟡 חלק מהסקטורים תומכים, אך יש שונות – נדרשת זהירות וניהול סיכון."
     else:
         return "🔴 רוב הסקטורים אינם תומכים – המלצה להמתין או לפעול בזהירות."
+
+sector_support_text = get_sector_support_text(sector_analysis)
+
+message = (
+    f"📅 סקירה שבועית – יום ראשון\n"
+    f"• טווח תאריכים: {start_date} עד {end_date}\n"
+    f"• מצב המדדים: נאסד
+
+לא 😊  
+**לא לשים את זה ב־messaging.py**, כי שם שמורים רק משפטים קבועים או תבניות פשוטות.
+
+---
+
+### ✅ איפה כן לשים:
+שים את הקטע הזה בקובץ שבו נבנית בפועל **הסקירה השבועית המלאה**, כלומר בקובץ `reporting.py` (אם כבר יש בו את `get_sector_support_text`) או בקובץ `weekly_report.py` אם יצרת כזה.
+
+> המיקום המדויק תלוי איך אתה בונה את הדוח – אבל הוא צריך להיות כחלק מ־`generate_weekly_report()` או משהו דומה.
+
+---
+
+### לדוגמה:
+```python
+# בקובץ weekly_report.py או reporting.py
+def generate_weekly_summary(start_date, end_date, nasdaq_change, sp500_change, general_market_trend, sector_analysis):
+    from reporting import get_sector_support_text
+
+    sector_support_text = get_sector_support_text(sector_analysis)
+
+    message = (
+        f"📅 סקירה שבועית – יום ראשון\n"
+        f"• טווח תאריכים: {start_date} עד {end_date}\n"
+        f"• מצב המדדים: נאסד״ק {nasdaq_change}%, S&P 500 {sp500_change}%\n"
+        f"• מגמות כלליות: {general_market_trend}\n"
+        f"{sector_support_text}\n"
+        f"📊 האיתותים שהתקבלו הוצגו בפירוט למטה.\n"
+        f"💡 מומלץ לעיין באיתותים, לנתח את המגמות, ולהיערך לשבוע חדש."
+    )
+
+    return message
 
 def log_trade_signal(ticker,
                      signal_type,
