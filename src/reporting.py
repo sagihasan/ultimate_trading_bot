@@ -9,6 +9,33 @@ from datetime import datetime
 from reporting import get_sector_support_text
 import os
 
+def log_signal_to_excel(symbol, direction, entry_price, stop_loss, take_profit, result, return_pct, zone, market_support, fib_analysis, sector_analysis, macro_analysis, fundamental_analysis):
+    try:
+        df = pd.read_excel("signals_log.xlsx")
+
+        new_row = {
+            "תאריך": datetime.now().strftime("%Y-%m-%d"),
+            "מניה": symbol,
+            "כיוון": direction,
+            "מחיר כניסה": entry_price,
+            "סטופ לוס": stop_loss,
+            "טייק פרופיט": take_profit,
+            "תוצאה": result,
+            "תשואה": f"{return_pct:.2f}%",
+            "אזור": zone or "",
+            "תמיכת שוק": market_support,
+            "ניתוח פיבונאצ’י": fib_analysis,
+            "ניתוח סקטור": sector_analysis,
+            "ניתוח מאקרו": macro_analysis,
+            "ניתוח פונדומנטלי": fundamental_analysis
+        }
+
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        df.to_excel("signals_log.xlsx", index=False)
+
+    except Exception as e:
+        print(f"שגיאה בעת כתיבת איתות ל־signals_log.xlsx: {e}")
+
 def get_sector_support_text(sector_analysis):
     supporting_sectors = [s for s in sector_analysis if sector_analysis[s] == "תומך"]
     opposing_sectors = [s for s in sector_analysis if sector_analysis[s] == "נוגד"]
