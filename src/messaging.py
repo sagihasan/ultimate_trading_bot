@@ -1,5 +1,6 @@
 import os
 import requests
+from discord_manager import send_message
 
 from env_loader import (DISCORD_PUBLIC_WEBHOOK_URL,
                         DISCORD_PRIVATE_WEBHOOK_URL,
