@@ -279,3 +279,28 @@ def send_weekly_macro_outlook(macro_events):
         "🏁 נתראה בזירות – הולך להיות שבוע סוער!"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_post_macro_event_analysis(event):
+    impact = analyze_market_reaction(event)
+    action = ""
+    stop_price = ""
+
+    if impact == "crash":
+        action = "צא מיידית מהעסקה – השוק התרסק בעקבות הנתון"
+    elif impact == "weakness":
+        stop_price = suggest_new_stop_price(event["symbol"], direction="long")
+        action = f"עדכן סטופ לוס ל־{stop_price} – חולשה נרשמה בעקבות האירוע"
+    elif impact == "strength":
+        stop_price = suggest_new_stop_price(event["symbol"], direction="short")
+        action = f"עדכן סטופ לוס ל־{stop_price} – השוק מגיב בעוצמה למעלה"
+    else:
+        action = "אין תגובה מהותית – ממשיך לעקוב"
+
+    message = (
+        f"🧨 סיכום אירוע מאקרו ({event['title']})\n"
+        f"🕒 התרחש לפני רבע שעה\n"
+        f"📉 השפעתו על השוק: {impact.upper()}\n"
+        f"📌 המלצת פעולה: {action}"
+    )
+
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
