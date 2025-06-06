@@ -10,7 +10,7 @@ from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 from risk_management import open_position, close_position
 from ai_analysis import get_ai_insights
 
-from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert, detect_institutional_activity_alert, send_fibonacci_alert, send_trend_conflict_alert, send_emergency_crash_alert, classify_pe_ratio, classify_vix, send_nightly_market_summary
+from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert, detect_institutional_activity_alert, send_fibonacci_alert, send_trend_conflict_alert, send_emergency_crash_alert, classify_pe_ratio, classify_vix, send_nightly_market_summary, send_weekly_private_morning
 from macro import get_macro_summary, format_macro_summary
 from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EVENT_HOUR, MACRO_EVENT_MINUTE
 from gap_analysis import detect_expected_gap, predict_gap
@@ -39,6 +39,11 @@ def daily_schedule_loop():
         print(
             f"[{now.strftime('%Y-%m-%d %H:%M:%S')}] שעה: {current_hour} | דקה: {current_minute} | התחלה: {sent_today_start} | סיום: {sent_today_end}"
         )
+
+        is_sunday = weekday == 6
+
+    if now_str == "11:30" and is_sunday:
+        send_weekly_private_morning()
 
         # איפוס יומי
         if last_day != now.date():
