@@ -8,6 +8,16 @@ import pandas as pd
 from datetime import datetime
 import os
 
+def get_sector_support_text(sector_analysis):
+    supporting_sectors = [s for s in sector_analysis if sector_analysis[s] == "תומך"]
+    opposing_sectors = [s for s in sector_analysis if sector_analysis[s] == "נוגד"]
+
+    if len(supporting_sectors) >= 5:
+        return "🟢 רוב הסקטורים תומכים באיתותים השבועיים – שוק יציב להתקדמות."
+    elif 2 <= len(supporting_sectors) < 5:
+        return "🟡 חלק מהסקטורים תומכים, אך יש שונות – נדרשת זהירות וניהול סיכון."
+    else:
+        return "🔴 רוב הסקטורים אינם תומכים – המלצה להמתין או לפעול בזהירות."
 
 def log_trade_signal(ticker,
                      signal_type,
