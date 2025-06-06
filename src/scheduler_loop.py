@@ -37,7 +37,10 @@ def daily_schedule_loop():
         now = datetime.now(pytz.timezone('Asia/Jerusalem'))
         current_hour = now.hour
         current_minute = now.minute
-
+        
+        if now.minute % 5 == 0:  # כל 5 דקות
+            manage_open_trades()
+    
         # הדפסת מצב
         print(
             f"[{now.strftime('%Y-%m-%d %H:%M:%S')}] שעה: {current_hour} | דקה: {current_minute} | התחלה: {sent_today_start} | סיום: {sent_today_end}"
