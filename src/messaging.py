@@ -234,3 +234,18 @@ def classify_vix(vix):
         return f"{vix} 🟡 (מתח בינוני)"
     else:
         return f"{vix} 🔴 (פחד גבוה – זהירות)"
+
+def send_nightly_market_summary(nasdaq_change, sp500_change, pe_ratio, vix_value, open_trades_summary):
+    pe_text = classify_pe_ratio(pe_ratio)
+    vix_text = classify_vix(vix_value)
+
+    message = (
+        f"📊 סיכום יומי:\n"
+        f"• נאסד״ק: {nasdaq_change}%\n"
+        f"• S&P 500: {sp500_change}%\n"
+        f"• מכפיל רווח S&P: {pe_text}\n"
+        f"• מדד הפחד (VIX): {vix_text}\n"
+        f"📈 מצב עסקאות פתוחות: {open_trades_summary}\n"
+        f"🌙 לילה טוב – נתראה מחר לקרב חדש!"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
