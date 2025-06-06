@@ -30,6 +30,26 @@ def detect_institutional_activity(symbol):
         }
     return None
 
+def summarize_open_trades():
+    if not current_positions:
+        return "אין עסקאות פתוחות כרגע."
+
+    summary = []
+    for symbol in current_positions:
+        entry = get_entry_price(symbol)
+        current = get_current_price(symbol)
+        direction = get_position_direction(symbol)  # "לונג" או "שורט"
+
+        if direction == "לונג":
+            status = "📈 רווח" if current > entry else "📉 הפסד"
+        else:  # שורט
+            status = "📈 רווח" if current < entry else "📉 הפסד"
+
+        pct_change = round(((current - entry) / entry) * 100, 2)
+        summary.append(f"{symbol} ({direction}) – {status} ({pct_change}%)")
+
+    return " | ".join(summary)
+
 def calculate_stop_loss(entry_price, direction='long'):
     stop_loss = entry_price * (1 - DEFAULT_STOP_LOSS_PERCENT / 100) if direction == 'long' else entry_price * (1 + DEFAULT_STOP_LOSS_PERCENT / 100)
     return round(stop_loss, 2)
