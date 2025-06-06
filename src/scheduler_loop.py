@@ -9,6 +9,7 @@ from technicals import detect_volume_surge, get_signal_direction, get_technicals
 from market_analysis import get_sp500_trend, get_nasdaq_trend, get_vix_level
 from risk_management import open_position, close_position
 from ai_analysis import get_ai_insights
+from macro_analysis import analyze_market_reaction, suggest_new_stop_price
 
 from messaging import send_macro_event_summary_before, send_macro_event_summary_after, send_no_real_trading_alert, send_final_signal, send_weakness_alert, send_bubble_alert, send_crisis_alert, send_gap_alert, send_gap_exit_alert, send_intraday_weakness_alert, detect_premarket_weakness, detect_live_weakness, detect_aftermarket_weakness, send_gap_forecast_alert, detect_institutional_activity_alert, send_fibonacci_alert, send_trend_conflict_alert, send_emergency_crash_alert, classify_pe_ratio, classify_vix, send_nightly_market_summary, send_weekly_private_morning, send_weekly_macro_outlook, send_post_macro_event_analysis
 from macro import get_macro_summary, format_macro_summary
