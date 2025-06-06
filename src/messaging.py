@@ -218,3 +218,19 @@ def send_emergency_crash_alert(symbol, reason, direction):
         f"🚨 נקט באמצעים קרביים – זהו מצב חירום"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def classify_pe_ratio(pe):
+    if pe < 15:
+        return f"{pe} 🟢 (זול – חזק ללונג)"
+    elif pe <= 22:
+        return f"{pe} 🟡 (ניטרלי)"
+    else:
+        return f"{pe} 🔴 (יקר – סיכון ללונג)"
+
+def classify_vix(vix):
+    if vix < 13:
+        return f"{vix} 🟢 (שוק רגוע)"
+    elif vix <= 20:
+        return f"{vix} 🟡 (מתח בינוני)"
+    else:
+        return f"{vix} 🔴 (פחד גבוה – זהירות)"
