@@ -317,4 +317,15 @@ if now.hour == signal_hour and now.minute == signal_minute:
         send_no_signal_reason(reason)
         open_position(chosen_symbol)
 
+        now_str = datetime.now().strftime("%H:%M")
+
+if now_str == "02:00":
+    nasdaq_change = get_nasdaq_daily_change()
+    sp500_change = get_sp500_daily_change()
+    pe_ratio = get_sp500_pe_ratio()
+    vix_value = get_vix_value()
+    open_trades_summary = summarize_open_trades()
+
+    send_nightly_market_summary(nasdaq_change, sp500_change, pe_ratio, vix_value, open_trades_summary)
+
         time.sleep(60)
