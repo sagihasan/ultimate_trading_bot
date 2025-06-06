@@ -249,3 +249,18 @@ def send_nightly_market_summary(nasdaq_change, sp500_change, pe_ratio, vix_value
         f"🌙 לילה טוב – נתראה מחר לקרב חדש!"
     )
     send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
+
+def send_weekly_private_morning():
+    message = (
+        "🌅 בוקר טוב!\n"
+        "הבוט מוכן להתחיל את השבוע.\n\n"
+        "✅ סרקתי את כל מה שהולך לקרות השבוע:\n"
+        "- אירועים מאקרו חשובים\n"
+        "- דוחות\n"
+        "- מגמות בשוק ובסקטורים\n"
+        "- וניצחון ברור על המדדים.\n\n"
+        "📊 תעיין בתוצאות ובסקירה המלאה שנשלחו לערוץ הציבורי.\n"
+        "🎯 שבוע קרבי מתחיל עכשיו.\n"
+        "יום מוצלח ולוחמני!"
+    )
+    send_message(DISCORD_PRIVATE_WEBHOOK_URL, message)
