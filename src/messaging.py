@@ -264,3 +264,18 @@ def send_weekly_private_morning():
         "יום מוצלח ולוחמני!"
     )
     send_message(DISCORD_PRIVATE_WEBHOOK_URL, message)
+
+def send_weekly_macro_outlook(macro_events):
+    upcoming = "\n".join([
+        f"📅 {event['date']} – {event['title']} ({event['impact']})"
+        for event in macro_events
+    ])
+
+    message = (
+        "**📊 סקירת מאקרו שבועית:**\n\n"
+        "🧠 הבוט ניתח את כל האירועים הקרובים שמשפיעים על השוק השבוע:\n\n"
+        f"{upcoming}\n\n"
+        "🛡️ הבוט יעקוב בזמן אמת – ויתריע לך אם משהו חורג מהציפיות!\n"
+        "🏁 נתראה בזירות – הולך להיות שבוע סוער!"
+    )
+    send_message(DISCORD_PUBLIC_WEBHOOK_URL, message)
