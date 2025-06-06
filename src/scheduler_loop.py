@@ -45,6 +45,10 @@ def daily_schedule_loop():
     if now_str == "11:30" and is_sunday:
         send_weekly_private_morning()
 
+        if now_str == "12:00" and is_sunday:
+    macro_events = get_upcoming_macro_events()  # זו פונקציה שצריכה להביא את האירועים הקרובים
+    send_weekly_macro_outlook(macro_events)
+
         # איפוס יומי
         if last_day != now.date():
             sent_today_start = False
