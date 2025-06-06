@@ -1,6 +1,8 @@
 # macro_analysis.py
 
 from indices import get_index_change
+from risk_management import suggest_new_stop_price
+from messaging import send_message, DISCORD_PUBLIC_WEBHOOK_URL
 
 def analyze_market_reaction(event):
     """
