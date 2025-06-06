@@ -16,6 +16,7 @@ from time_config import START_HOUR, START_MINUTE, END_HOUR, END_MINUTE, MACRO_EV
 from gap_analysis import detect_expected_gap, predict_gap
 from position_utils import check_open_position, get_position_direction
 from strategic_zones import check_strategic_zones
+from macro_events import get_upcoming_macro_events
 
 # משתנים גלובליים
 sent_today_start = False
